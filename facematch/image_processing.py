@@ -25,3 +25,6 @@ def merge(a, b):
     Merged list of list of images
     """
     pass
+
+def process_images_for_cnn1(images):
+    pass
