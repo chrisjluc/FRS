@@ -7,6 +7,9 @@ class Writer(object):
     def save_image(self, id, image):
         pass
 
+    def save_model(self, model):
+        pass
+
 class Reader(object):
 
     def __init__(self):
@@ -16,4 +19,7 @@ class Reader(object):
         pass
 
     def get_ids(self):
+        pass
+
+    def get_model(self, model_type):
         pass
