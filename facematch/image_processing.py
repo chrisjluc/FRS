@@ -15,6 +15,16 @@ def apply_reflection(images):
 def apply_noise(images):
     pass
 
+def apply_cloning(images, factor):
+    """
+    Clones in place by factor
+    If factor is two, we double the image sample size
+
+    params:
+    factor: int
+    """
+    pass
+
 def merge(a, b):
     """
     args:

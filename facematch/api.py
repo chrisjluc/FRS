@@ -10,31 +10,46 @@ class API(object):
     def __init__(self):
         self.reader = Reader()
         self.writer = Writer()
-
         self.model = self.reader.get_model(consts.nn2)
 
-    def compute_score(id, image):
-        im = Image(image)
-        score = self.model.predict(im)
-        # TODO: process score
-        return score
+    def compute_score(self, user_id, image):
+        """
+        Note: Image isn't persisted.
+        To persist an image call add_image(user_id, image)
 
-    def train():
-        ids = self.reader.get_ids()
+        params:
+        user_id: string or int
+        image: either a string of the filename or numpy array of an RGB image
+        """
+        im = Image(image)
+        return self.model.score(user_id, im)
+
+    def train(self):
+        """
+        Trains the model on all images that are currently in storage
+        """
+        ids = self.reader.get_user_ids()
 
         images = []
-        for id in ids:
-            images.append(self.reader.get_images(id))
+        for user_id in ids:
+            images.append(self.reader.get_images(user_id))
 
+        # Data augmentation
         reflected_images = ip.clone_images(images)
         ip.apply_reflection(reflected_images)
         images = ip.merge(images, reflected_images)
+        ip.apply_cloning(images, 2)
         ip.apply_noise(images)
 
         self.model = NN2Model(images, ids)
         self.model.train()
         self.writer.save_model(self.model)
 
-    def add_image(id, image):
+    def add_image(self, user_id, image):
+        """
+        params:
+        user_id: string or int
+        image: either a string of the filename or numpy array of an RGB image
+        """
         im = Image(image)
-        self.writer.save_image(id, im)
+        self.writer.save_image(user_id, im)

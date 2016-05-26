@@ -18,7 +18,7 @@ class Model(object):
     def train(self):
         pass
 
-    def predict(self):
+    def score(self, user_id, image):
         pass
 
 
