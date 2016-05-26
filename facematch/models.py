@@ -1,9 +1,5 @@
 import consts
 
-from keras.models import Sequential
-from keras.layers.core import Dense, Dropout, Activation, Flatten
-from keras.layers.convolutional import Convolution2D, MaxPooling2D, ZeroPadding2D, AveragePooling2D
-
 class Model(object):
 
     def __init__(self, init_model, images, ids, input_shape):
@@ -16,7 +12,7 @@ class Model(object):
         raise NotImplementedError
 
     def train(self):
-        pass
+        self._process_data()
 
     def score(self, user_id, image):
         pass
@@ -25,7 +21,7 @@ class Model(object):
 class NN2Model(Model):
 
     def __init__(self, images, ids):
-        super(NN1Model, self).__init__(
+        super(NN2Model, self).__init__(
                 _NN2,
                 consts.nn2_input_shape,
                 images,
@@ -34,6 +30,10 @@ class NN2Model(Model):
 
 
 def _NN1(nb_classes, input_shape):
+    from keras.models import Sequential
+    from keras.layers.core import Dense, Dropout, Activation, Flatten
+    from keras.layers.convolutional import Convolution2D, MaxPooling2D, ZeroPadding2D, AveragePooling2D
+
     model = Sequential()
 
     model.add(Convolution2D(64, 3, 3, activation='relu', input_shape=input_shape))
@@ -73,6 +73,10 @@ def _NN1(nb_classes, input_shape):
 
 
 def _NN2(nb_classes, input_shape):
+    from keras.models import Sequential
+    from keras.layers.core import Dense, Dropout, Activation, Flatten
+    from keras.layers.convolutional import Convolution2D, MaxPooling2D, ZeroPadding2D, AveragePooling2D
+
     model = Sequential()
 
     model.add(Convolution2D(64, 3, 3, activation='relu', input_shape=input_shape))

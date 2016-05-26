@@ -17,3 +17,6 @@ model_path = os.path.join(data_path, 'models')
 image_ext = '_image.npy'
 landmarks_ext = '_landmarks.npy'
 features_ext = '_features.npy'
+
+# Tasks
+num_gpus = 4

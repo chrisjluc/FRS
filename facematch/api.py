@@ -4,6 +4,8 @@ import image_processing as ip
 from image import Image
 from storage import Reader, Writer
 from models import NN2Model
+from tasks import TrainingTask
+from task_manager import TaskManager
 
 class API(object):
 
@@ -41,9 +43,9 @@ class API(object):
         ip.apply_cloning(images, 2)
         ip.apply_noise(images)
 
-        self.model = NN2Model(images, ids)
-        self.model.train()
-        self.writer.save_model(self.model)
+        tasks = [TrainingTask(NN2Model, images, user_ids)]
+        task_manager = TaskManager(tasks)
+        task_manager.run_tasks()
 
     def add_image(self, user_id, image):
         """

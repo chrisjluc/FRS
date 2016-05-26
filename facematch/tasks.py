@@ -1,15 +1,22 @@
 
-class Task(object):
+class GPUTask(object):
 
     def run(self):
         raise NotImplementedError
 
-class TrainingTask(Task):
+class TrainingTask(GPUTask):
+
+    def __init__(self, model_cls, images, user_ids):
+        self.model_cls = model_cls
+        self.images = images
+        self.user_ids = user_ids
 
     def run(self):
-        pass
+        model = self.model_cls(self.images, self.user_ids)
+        model.train()
+        Writer().save_model(model)
 
-class ScoringTask(Task):
+class ScoringTask(GPUTask):
 
     def run(self):
         pass

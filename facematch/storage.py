@@ -2,6 +2,7 @@ import consts
 
 from image import Image
 
+import numpy as np
 import os
 import uuid
 
