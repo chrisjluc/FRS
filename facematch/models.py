@@ -25,8 +25,7 @@ class Model(object):
 class NN2Model(Model):
 
     def __init__(self, images, ids):
-        super(NN1Model, self)
-        .__init__(
+        super(NN1Model, self).__init__(
                 _NN2,
                 consts.nn2_input_shape,
                 images,
