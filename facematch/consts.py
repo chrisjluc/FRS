@@ -12,6 +12,8 @@ noise_width = 15
 
 # Storage
 data_path = '.data'
+face_predictor_path = os.path.join(
+        data_path, 'shape_predictor_68_face_landmarks.dat')
 image_path = os.path.join(data_path, 'images')
 model_path = os.path.join(data_path, 'models')
 image_ext = '_image.npy'

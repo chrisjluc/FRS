@@ -36,11 +36,11 @@ class API(object):
             images.append(self.reader.get_images(user_id))
 
         # Data augmentation
-        reflected_images = ip.clone_images(images)
-        ip.apply_reflection(reflected_images)
+        cloned_images = ip.clone_images(images, 1)
+        reflected_images = ip.apply_reflection(cloned_images)
         images = ip.merge(images, reflected_images)
-        ip.apply_cloning(images, 2)
-        ip.apply_noise(images)
+        images = ip.apply_cloning(images, 2)
+        images = ip.apply_noise(images)
 
         tasks = [TrainingTask(NN2Model, images, user_ids)]
         task_manager = TaskManager(tasks)

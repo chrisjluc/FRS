@@ -1,29 +1,84 @@
+import consts
+
+import copy
 import numpy as np
 
-def _reflection(image):
-    return np.array([list(reversed(row)) for row in image])
-
-def partition(image, top_left, rows, cols):
-    return np.array([row[top_left[1]:top_left[1] + cols] for row in image[top_left[0]:top_left[0] + rows]])
-
-def clone_images(images):
-    pass
-
-def apply_reflection(images):
-    pass
-
-def apply_noise(images):
-    pass
-
-def apply_cloning(images, factor):
+def clone_images(images, factor):
     """
-    Clones in place by factor
-    If factor is two, we double the image sample size
-
-    params:
+    images: list of list of images
     factor: int
     """
-    pass
+    cloned_images = []
+    for _images in images:
+        _cloned_images = []
+        for i in range(factor):
+            _cloned_images += copy.deepcopy(_images)
+        cloned_images.append(_cloned_images)
+    assert(len(images) == len(cloned_images))
+    return cloned_images
+
+def _reflection(image):
+    im, features, landmarks = image.image, image.features, image.landmarks
+    features = [(im.shape[1] - p[0], p[1]) for p in features]
+    landmarks = [(im.shape[1] - p[0], p[1]) for p in landmarks]
+    landmarks[:3], landmarks[6:] = landmarks[6:], landmarks[:3]
+    im = np.array([list(reversed(row)) for row in im])
+    image.im, image.feature_points, image.landmark_points = im, features, landmarks
+    return image
+
+def apply_reflection(images):
+    """
+    images: list of list of images
+    """
+    return [
+            [_reflection(image) for image in _images]
+            for _images in images
+            ]
+
+def get_random_noise_image(image, coords, width):
+    """
+    Apply random gaussian generated values
+    and distribute them on gaussian distributed square
+    centered on the coordinates passed in for the image
+    """
+    noise = np.zeros((image.shape[0], image.shape[1]))
+    for coord in coords:
+        # Convert coordinates to rows / columns
+        apply_noise_at_point(coord[1], coord[0], noise, width)
+    return np.clip(image + noise, 0, 1)
+
+def apply_noise_at_point(row, col, noise, width):
+    """
+    Generate a block with a single random value placed at the center
+    Apply the Gaussian filter with std of 4
+    Place it on the noise array at the appropriate coordinates
+    """
+    block = np.zeros((width, width))
+    block[width / 2, width / 2] = np.random.normal()
+    block = gaussian_filter(block, sigma=4)
+
+    row -= width / 2
+    col -= width / 2
+
+    row_end = min(noise.shape[0] - row, block.shape[0])
+    row_start =  max(0, -row)
+
+    col_end = min(noise.shape[1] - col, block.shape[1])
+    col_start = max(0, -col)
+
+    noise[max(0, row):row + block.shape[0], max(0, col):col + block.shape[1]] = block[row_start:row_end,col_start:col_end]
+
+def _apply_noise(image):
+    return get_random_noise_image(image.image, image.feature_points, consts.noise_width)
+
+def apply_noise(images):
+    """
+    images: list of list of images
+    """
+    return [
+            [_apply_noise(image) for image in _images]
+            for _images in images
+            ]
 
 def merge(a, b):
     """
@@ -34,11 +89,23 @@ def merge(a, b):
     Returns:
     Merged list of list of images
     """
-    pass
+    if len(a) != len(b):
+        raise Exception('a and b should have the same length')
+
+    merged = []
+    for x, y in zip(a, b):
+        merged.append(x + y)
+    assert(len(merged) == len(a))
+    return merged
+
 
 def get_image_window(image, size, point):
     """
     Assume image is grey image
+    params:
+    image: np array
+    size: (row, cols)
+    point: (x, y)
     """
     top = int(point[1] - size[0] / 2)
     left = int(point[0] - size[1] / 2)
