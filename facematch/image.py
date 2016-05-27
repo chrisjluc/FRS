@@ -62,7 +62,7 @@ class Image(object):
         self.landmark_points = landmark_points
         self.feature_points = feature_points
 
-    def _is_valid_state():
+    def assert_valid_state(self):
         assert(self.image is not None)
         assert(self.landmark_points is not None)
         assert(self.feature_points is not None)

@@ -12,7 +12,6 @@ class API(object):
     def __init__(self):
         self.reader = Reader()
         self.writer = Writer()
-        self.model = self.reader.get_model(consts.nn2)
 
     def compute_score(self, user_id, image):
         """

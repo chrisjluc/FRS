@@ -36,5 +36,10 @@ def merge(a, b):
     """
     pass
 
-def process_images_for_cnn1(images):
-    pass
+def get_image_window(image, size, point):
+    """
+    Assume image is grey image
+    """
+    top = int(point[1] - size[0] / 2)
+    left = int(point[0] - size[1] / 2)
+    return image[top:top + size[0], left:left + size[1]]
