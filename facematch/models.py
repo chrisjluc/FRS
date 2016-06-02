@@ -77,11 +77,11 @@ class NN2Model(Model):
 
     def _train(self):
         self.model.compile(loss='categorical_crossentropy', optimizer='sgd')
-        self.model.fit(X_train, Y_train, batch_size=32, nb_epoch=10,
+        self.model.fit(self.X_train, self.Y_train, batch_size=32, nb_epoch=10,
                         show_accuracy=True, verbose=1, shuffle=True, validation_split=.15)
 
         model.compile(loss='categorical_crossentropy', optimizer=SGD(lr=0.001))
-        model.fit(X_train, Y_train, batch_size=32, nb_epoch=10,
+        model.fit(self.X_train, self.Y_train, batch_size=32, nb_epoch=10,
                         show_accuracy=True, verbose=1, shuffle=True, validation_split=.15)
 
     def score(self, user_id, image):

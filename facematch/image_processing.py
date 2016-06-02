@@ -2,6 +2,7 @@ import consts
 
 import copy
 import numpy as np
+from scipy.ndimage.filters import gaussian_filter
 
 def clone_images(images, factor):
     """
@@ -18,12 +19,12 @@ def clone_images(images, factor):
     return cloned_images
 
 def _reflection(image):
-    im, features, landmarks = image.image, image.features, image.landmarks
-    features = [(im.shape[1] - p[0], p[1]) for p in features]
-    landmarks = [(im.shape[1] - p[0], p[1]) for p in landmarks]
-    landmarks[:3], landmarks[6:] = landmarks[6:], landmarks[:3]
+    im, feature_points, landmark_points = image.image, image.feature_points, image.landmark_points
+    feature_points = [(im.shape[1] - p[0], p[1]) for p in feature_points]
+    landmark_points = [(im.shape[1] - p[0], p[1]) for p in landmark_points]
+    landmark_points[:3], landmark_points[6:] = landmark_points[6:], landmark_points[:3]
     im = np.array([list(reversed(row)) for row in im])
-    image.im, image.feature_points, image.landmark_points = im, features, landmarks
+    image.im, image.feature_points, image.landmark_points = im, feature_points, landmark_points
     return image
 
 def apply_reflection(images):
@@ -69,7 +70,8 @@ def apply_noise_at_point(row, col, noise, width):
     noise[max(0, row):row + block.shape[0], max(0, col):col + block.shape[1]] = block[row_start:row_end,col_start:col_end]
 
 def _apply_noise(image):
-    return get_random_noise_image(image.image, image.feature_points, consts.noise_width)
+    image.image = get_random_noise_image(image.image, image.feature_points, consts.noise_width)
+    return image
 
 def apply_noise(images):
     """

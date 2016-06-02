@@ -3,5 +3,8 @@
 .ipynb_checkpoints/
 data/
 
+facematch/.data/images/
+facematch/tests/.cache/
+
 *.swp
 *.swo

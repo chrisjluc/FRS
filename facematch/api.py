@@ -29,20 +29,19 @@ class API(object):
         """
         Trains the model on all images that are currently in storage
         """
-        ids = self.reader.get_user_ids()
-
+        user_ids = self.reader.get_user_ids()
         images = []
-        for user_id in ids:
+        for user_id in user_ids:
             images.append(self.reader.get_images(user_id))
 
         # Data augmentation
         cloned_images = ip.clone_images(images, 1)
         reflected_images = ip.apply_reflection(cloned_images)
         images = ip.merge(images, reflected_images)
-        images = ip.apply_cloning(images, 2)
+        images = ip.clone_images(images, 2)
         images = ip.apply_noise(images)
 
-        tasks = [TrainingTask(NN2Model, images, user_ids)]
+        tasks = [TrainingTask(NN2Model, images, user_ids, consts.NN2)]
         task_manager = TaskManager(tasks)
         task_manager.run_tasks()
 

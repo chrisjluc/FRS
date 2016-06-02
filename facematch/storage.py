@@ -2,6 +2,7 @@ import consts
 
 from image import Image
 
+import fnmatch
 import numpy as np
 import os
 import uuid
@@ -16,9 +17,9 @@ class Writer(object):
 
     def save_image(self, user_id, image):
         image.assert_valid_state()
-        user_path = os.path.join(image_path, user_id)
+        user_path = os.path.join(consts.image_path, user_id)
         self._create_directory(user_path)
-        image_id = uuid.uuid4()
+        image_id = str(uuid.uuid4())
         image_path = os.path.join(user_path, image_id)
         np.save(image_path + consts.image_ext, image.image)
         np.save(image_path + consts.landmarks_ext, image.landmark_points)
@@ -50,11 +51,11 @@ class Reader(object):
         if not os.path.exists(user_path):
             return None
 
-        image_ids = [f.replace(image_ext, '')
+        image_ids = [f.replace(consts.image_ext, '')
                 for f in os.listdir(user_path)
-                if fnmatch.fnmatch(f, '*' + image_ext)]
+                if fnmatch.fnmatch(f, '*' + consts.image_ext)]
 
-        return [_get_image(image_id, user_path) for image_id in image_ids]
+        return [self._get_image(image_id, user_path) for image_id in image_ids]
 
     def _get_image(self, image_id, user_path):
         image_path = os.path.join(user_path, image_id)
@@ -66,7 +67,7 @@ class Reader(object):
         return image
 
     def get_user_ids(self):
-        return [x[0] for x in os.walk(consts.image_path)]
+        return [os.path.join(consts.image_path, x[1][0]) for x in os.walk(consts.image_path) if x[1]]
 
     def get_model(self, model_type):
         pass

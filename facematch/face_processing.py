@@ -3,20 +3,25 @@ import consts
 import dlib
 import math
 import numpy as np
+from scipy.spatial import distance
+import sys
 
 detector = dlib.get_frontal_face_detector()
 predictor = dlib.shape_predictor(consts.face_predictor_path)
 
-def __get_centroid(points):
+def _get_centroid(points):
     x = [p[0] for p in points]
     y = [p[1] for p in points]
     return (sum(x) / len(points), sum(y) / len(points))
 
 def get_most_centre_face(image):
+    height = image.shape[0]
+    width = image.shape[1]
+    image_centre = width / 2, height / 2
     most_centre_face = None
     most_centre_dist = sys.maxint
 
-    detected_faces = detector(img, 1)
+    detected_faces = detector(image, 1)
     for d in detected_faces:
         face_centre = (d.right() + d.left()) / 2, (d.bottom() + d.top()) / 2
         centre_dist = distance.euclidean(image_centre, face_centre)
@@ -26,8 +31,8 @@ def get_most_centre_face(image):
 
     return most_centre_face
 
-def get_facial_landmark_points(image, face):
-    points = np.array([[p.x, p.y] for p in predictor(im, face).parts()])
+def get_facial_landmark_points(image, face, w=.6, eye_scale=.05):
+    points = np.array([[p.x, p.y] for p in predictor(image, face).parts()])
     landmarks = [None for _ in range(9)]
 
     p = _get_centroid([points[19], points[24]])
@@ -61,7 +66,7 @@ def get_facial_landmark_points(image, face):
     return np.array(landmarks)
 
 def get_facial_feature_points(image, face):
-    points = np.array([[p.x, p.y] for p in predictor(im, face).parts()])
+    points = np.array([[p.x, p.y] for p in predictor(image, face).parts()])
     facial_feature_points = [None for i in range(5)]
 
     # Left and right eyes, nose, left and right points of the mouth
@@ -77,6 +82,6 @@ def calculate_rotation(landmark_points):
     """
     Return degrees of how much the face is rotated off the vertical axis
     """
-    u = points[3]
-    v = points[5]
+    u = landmark_points[3]
+    v = landmark_points[5]
     return math.degrees(np.arctan((v[0] - u[0]) / (v[1] - u[1])))

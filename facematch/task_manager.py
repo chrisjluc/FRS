@@ -1,3 +1,5 @@
+import consts
+
 from multiprocessing import Process
 
 def _run_task_with_gpu(task, gpu):
@@ -13,12 +15,17 @@ class TaskManager(object):
         self.tasks = tasks
 
     def run_tasks(self):
-        if len(tasks) > consts.num_gpus:
+        if len(self.tasks) > consts.num_gpus:
             raise Exception('Does not support that many gpus')
 
-        for index, task in enumerate(tasks):
+        processes = []
+        for index, task in enumerate(self.tasks):
             p = Process(
                     target=_run_task_with_gpu,
                     args=(task, 'gpu' + str(index))
                     )
             p.start()
+            processes.append(p)
+
+        for p in processes:
+            p.join()

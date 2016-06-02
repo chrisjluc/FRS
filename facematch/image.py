@@ -1,5 +1,7 @@
+import consts
 import face_processing as fp
 
+import numpy as np
 from scipy.misc import imrotate
 from skimage import io
 from skimage.color import rgb2grey
@@ -18,7 +20,7 @@ class Image(object):
             img = f
 
         # Normalize face angle
-	    face = fp.get_most_centre_face(img)
+	face = fp.get_most_centre_face(img)
 
         if not face:
             raise NoFaceDetectedException()
@@ -28,9 +30,9 @@ class Image(object):
         img = imrotate(img, -angle)
 
         # Normalize and crop image by centering around the facial features
-        face = get_most_centre_face(img)
-        landmark_points = get_facial_landmark_points(img, face)
-        feature_points = get_facial_feature_points(img, face)
+        face = fp.get_most_centre_face(img)
+        landmark_points = fp.get_facial_landmark_points(img, face)
+        feature_points = fp.get_facial_feature_points(img, face)
 
         face_height = face.bottom() - face.top()
         face_width = face.right() - face.left()
