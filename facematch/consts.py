@@ -11,7 +11,7 @@ nn2_input_shape = 1, 165, 120
 noise_width = 15
 
 # Storage
-data_path = '.data'
+data_path = '/home/ubuntu/FRS/facematch/.data'
 face_predictor_path = os.path.join(
         data_path, 'shape_predictor_68_face_landmarks.dat')
 image_path = os.path.join(data_path, 'images')

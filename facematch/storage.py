@@ -17,7 +17,7 @@ class Writer(object):
     def save_image(self, user_id, image):
         image.assert_valid_state()
         user_path = os.path.join(image_path, user_id)
-        self._create_directory(user_path):
+        self._create_directory(user_path)
         image_id = uuid.uuid4()
         image_path = os.path.join(user_path, image_id)
         np.save(image_path + consts.image_ext, image.image)

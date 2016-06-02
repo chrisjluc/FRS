@@ -25,7 +25,7 @@ class Model(object):
         X_train = np.array([x[0] for x in zipped])
         y_train = np.array([x[1] for x in zipped])
         self.X_train = X_train.reshape(X_train.shape[0], 1, self.input_shape[1], self.input_shape[2])
-        self.Y_train = np_utils.to_categorical(y_train, self.nb_classes))
+        self.Y_train = np_utils.to_categorical(y_train, self.nb_classes)
 
     def _train(self):
         raise NotImplementedError
@@ -84,7 +84,7 @@ class NN2Model(Model):
         model.fit(X_train, Y_train, batch_size=32, nb_epoch=10,
                         show_accuracy=True, verbose=1, shuffle=True, validation_split=.15)
 
-    def score(self, user_id, image);
+    def score(self, user_id, image):
         X_test, _ = self._process_data([[image]])
         proba = model.predict_proba(X_test)
         return proba[0][self.id_to_idx[user_id]]

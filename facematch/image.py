@@ -12,13 +12,13 @@ class Image(object):
         if not f:
             return
 
-        if isinstance(f, basestring)
+        if isinstance(f, basestring):
             img = io.imread(f)
         else:
             img = f
 
         # Normalize face angle
-	face = fp.get_most_centre_face(img)
+	    face = fp.get_most_centre_face(img)
 
         if not face:
             raise NoFaceDetectedException()
