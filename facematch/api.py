@@ -13,6 +13,9 @@ class API(object):
         self.reader = Reader()
         self.writer = Writer()
 
+    def load_model(self, model_name):
+        self.model_name = model_name
+
     def compute_score(self, user_id, image):
         """
         Note: Image isn't persisted.
@@ -22,6 +25,9 @@ class API(object):
         user_id: string or int
         image: either a string of the filename or numpy array of an RGB image
         """
+        if not self.model:
+            raise Exception('Model isn\'t loaded. Call load_model(model_name)')
+
         im = Image(image)
         return self.model.score(user_id, im)
 
@@ -29,11 +35,13 @@ class API(object):
         """
         Trains the model on all images that are currently in storage
         """
+        if self.model_name:
+            raise Exception('Model isn\'t loaded. Call load_model(model_name)')
+
         user_ids = self.reader.get_user_ids()
         images = []
         for user_id in user_ids:
             images.append(self.reader.get_images(user_id))
-
         # Data augmentation
         cloned_images = ip.clone_images(images, 1)
         reflected_images = ip.apply_reflection(cloned_images)

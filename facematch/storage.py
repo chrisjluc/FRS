@@ -67,7 +67,7 @@ class Reader(object):
         return image
 
     def get_user_ids(self):
-        return [os.path.join(consts.image_path, x[1][0]) for x in os.walk(consts.image_path) if x[1]]
+        return [x[0] for x in os.walk(consts.image_path) if x[0] != consts.image_path]
 
     def get_model(self, model_type):
         pass

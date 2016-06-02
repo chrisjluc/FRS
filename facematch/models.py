@@ -54,9 +54,10 @@ class NN2Model(Model):
         self.model = _NN2(self.nb_classes, self.input_shape)
 
     def _process_data(self, data):
+        image_shape = self.input_shape[1], self.input_shape[2]
         data = [[ip.get_image_window(
                     image.image,
-                    self.input_shape,
+                    image_shape,
                     image.landmark_points[4])
                 for image in images]
                 for images in data]
@@ -64,25 +65,27 @@ class NN2Model(Model):
         X = [image
                 for images in data
                 for image in images
-                if image.shape == self.input_shape
+                if image.shape == image_shape
                 ]
 
-        y = [self.ids[images[0]]
+        y = [images[0]
                 for images in enumerate(data)
                 for image in images[1]
-                if image.shape == self.input_shape
+                if image.shape == image_shape
                 ]
 
         return X, y
 
     def _train(self):
-        self.model.compile(loss='categorical_crossentropy', optimizer='sgd')
-        self.model.fit(self.X_train, self.Y_train, batch_size=32, nb_epoch=10,
-                        show_accuracy=True, verbose=1, shuffle=True, validation_split=.15)
+        from keras.optimizers import SGD
 
-        model.compile(loss='categorical_crossentropy', optimizer=SGD(lr=0.001))
-        model.fit(self.X_train, self.Y_train, batch_size=32, nb_epoch=10,
-                        show_accuracy=True, verbose=1, shuffle=True, validation_split=.15)
+        self.model.compile(loss='categorical_crossentropy', optimizer='sgd', metrics=['accuracy'])
+        self.model.fit(self.X_train, self.Y_train, batch_size=32, nb_epoch=10,
+                verbose=1, shuffle=True, validation_split=.15)
+
+        self.model.compile(loss='categorical_crossentropy', optimizer=SGD(lr=0.001), metrics=['accuracy'])
+        self.model.fit(self.X_train, self.Y_train, batch_size=32, nb_epoch=10,
+                verbose=1, shuffle=True, validation_split=.15)
 
     def score(self, user_id, image):
         X_test, _ = self._process_data([[image]])
@@ -91,7 +94,7 @@ class NN2Model(Model):
 
     def save(self):
         w = Writer()
-        w.save(self.model, self.name)
+        w.save_model(self.model, self.name)
 
 
 def _NN1(nb_classes, input_shape):
