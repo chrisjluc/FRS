@@ -14,7 +14,11 @@ class API(object):
         self.writer = Writer()
 
     def load_model(self, model_name):
+        """
+        Retrieves model if it has been trained
+        """
         self.model_name = model_name
+        self.model = self.reader.get_model(model_name)
 
     def compute_score(self, user_id, image):
         """
@@ -35,9 +39,6 @@ class API(object):
         """
         Trains the model on all images that are currently in storage
         """
-        if self.model_name:
-            raise Exception('Model isn\'t loaded. Call load_model(model_name)')
-
         user_ids = self.reader.get_user_ids()
         images = []
         for user_id in user_ids:

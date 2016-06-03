@@ -69,5 +69,13 @@ class Reader(object):
     def get_user_ids(self):
         return [x[0] for x in os.walk(consts.image_path) if x[0] != consts.image_path]
 
-    def get_model(self, model_type):
-        pass
+    def get_model(self, model_name):
+        from keras.models import model_from_json
+
+        model_path = os.path.join(consts.model_path, model_name)
+        if not os.path.exists(model_path):
+            return None
+
+        model = model_from_json(open(model_path + consts.json_ext).read())
+        model.load_weights(model_path + consts.h5_ext)
+        return model
