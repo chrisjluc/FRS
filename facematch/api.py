@@ -13,12 +13,14 @@ class API(object):
         self.reader = Reader()
         self.writer = Writer()
 
-    def load_model(self, model_name):
+    def load_model(self):
         """
         Retrieves model if it has been trained
         """
-        self.model_name = model_name
-        self.model = self.reader.get_model(model_name)
+        user_ids = self.reader.get_user_ids()
+        self.model_name = consts.NN2
+        self.model = NN2Model(None, user_ids, self.model_name)
+        self.model.model = self.reader.get_model(self.model_name)
 
     def compute_score(self, user_id, image):
         """
@@ -30,7 +32,7 @@ class API(object):
         image: either a string of the filename or numpy array of an RGB image
         """
         if not self.model:
-            raise Exception('Model isn\'t loaded. Call load_model(model_name)')
+            raise Exception('Model isn\'t loaded. Call load_model()')
 
         im = Image(image)
         return self.model.score(user_id, im)
@@ -62,3 +64,11 @@ class API(object):
         """
         im = Image(image)
         self.writer.save_image(user_id, im)
+
+    def remove_images(self):
+        """
+        Removes all images that have been persisted
+        in consts.image_path
+        """
+        self.writer.remove_directory(consts.image_path)
+        self.writer.create_directory(consts.image_path)

@@ -4,21 +4,31 @@ from image import Image
 
 import fnmatch
 import numpy as np
+import shutil
 import os
 import uuid
 
-
-class Writer(object):
+class Storage(object):
 
     def __init__(self):
-        self._create_directory(consts.data_path)
-        self._create_directory(consts.image_path)
-        self._create_directory(consts.model_path)
+        self.create_directory(consts.data_path)
+        self.create_directory(consts.image_path)
+        self.create_directory(consts.model_path)
+
+    def create_directory(self, path):
+        if not os.path.exists(path):
+            os.makedirs(path)
+
+    def remove_directory(self, path):
+        shutil.rmtree(path)
+
+
+class Writer(Storage):
 
     def save_image(self, user_id, image):
         image.assert_valid_state()
         user_path = os.path.join(consts.image_path, user_id)
-        self._create_directory(user_path)
+        self.create_directory(user_path)
         image_id = str(uuid.uuid4())
         image_path = os.path.join(user_path, image_id)
         np.save(image_path + consts.image_ext, image.image)
@@ -36,15 +46,8 @@ class Writer(object):
         open(model_path + consts.json_ext, 'w').write(json)
         model.save_weights(model_path + consts.h5_ext, overwrite=True)
 
-    def _create_directory(self, path):
-        if not os.path.exists(path):
-            os.makedirs(path)
 
-
-class Reader(object):
-
-    def __init__(self):
-        pass
+class Reader(Storage):
 
     def get_images(self, user_id):
         user_path = os.path.join(consts.image_path, user_id)
@@ -67,15 +70,19 @@ class Reader(object):
         return image
 
     def get_user_ids(self):
-        return [x[0] for x in os.walk(consts.image_path) if x[0] != consts.image_path]
+        return [os.path.basename(os.path.normpath(x[0]))
+            for x in os.walk(consts.image_path)
+            if x[0] != consts.image_path]
 
     def get_model(self, model_name):
         from keras.models import model_from_json
 
         model_path = os.path.join(consts.model_path, model_name)
-        if not os.path.exists(model_path):
-            return None
+        model_file = model_path + consts.json_ext
+        weight_file = model_path + consts.h5_ext
+        if not os.path.isfile(model_file) or not os.path.isfile(weight_file):
+            raise Exception('Model files do not exist')
 
-        model = model_from_json(open(model_path + consts.json_ext).read())
-        model.load_weights(model_path + consts.h5_ext)
+        model = model_from_json(open(model_file).read())
+        model.load_weights(weight_file)
         return model

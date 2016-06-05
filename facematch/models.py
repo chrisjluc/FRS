@@ -17,22 +17,24 @@ class Model(object):
     def _process_data(self):
         raise NotImplementedError
 
-    def _shuffle_data(self):
-        from keras.utils import np_utils
-
-        zipped = np.array(zip(self.X_train, self.y_train))
+    def _shuffle_data(self, X, y):
+        zipped = np.array(zip(X, y))
         np.random.shuffle(zipped)
-        X_train = np.array([x[0] for x in zipped])
-        y_train = np.array([x[1] for x in zipped])
-        self.X_train = X_train.reshape(X_train.shape[0], 1, self.input_shape[1], self.input_shape[2])
-        self.Y_train = np_utils.to_categorical(y_train, self.nb_classes)
+        return (np.array([x[0] for x in zipped]),
+                np.array([x[1] for x in zipped]))
+
+    def _reshape_data(self, X, y):
+        from keras.utils import np_utils
+        return  (X.reshape(X.shape[0], 1, self.input_shape[1], self.input_shape[2]),
+        np_utils.to_categorical(y, self.nb_classes))
 
     def _train(self):
         raise NotImplementedError
 
     def train(self):
-        self.X_train, self.y_train = self._process_data(self.images)
-        self._shuffle_data()
+        X, y = self._process_data(self.images)
+        X, y = self._shuffle_data(X, y)
+        self.X_train, self.Y_train = self._reshape_data(X, y)
         self._train()
 
     def score(self, user_id, image):
@@ -62,17 +64,17 @@ class NN2Model(Model):
                 for image in images]
                 for images in data]
 
-        X = [image
+        X = np.array([image
                 for images in data
                 for image in images
                 if image.shape == image_shape
-                ]
+                ])
 
-        y = [images[0]
+        y = np.array([images[0]
                 for images in enumerate(data)
                 for image in images[1]
                 if image.shape == image_shape
-                ]
+                ])
 
         return X, y
 
@@ -89,7 +91,8 @@ class NN2Model(Model):
 
     def score(self, user_id, image):
         X_test, _ = self._process_data([[image]])
-        proba = model.predict_proba(X_test)
+        X_test, _ = self._reshape_data(X_test, _)
+        proba = self.model.predict_proba(X_test)
         return proba[0][self.id_to_idx[user_id]]
 
     def save(self):
