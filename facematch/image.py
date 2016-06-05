@@ -1,7 +1,10 @@
 import consts
 import face_processing as fp
 
+import matplotlib.pyplot as plt
 import numpy as np
+
+from matplotlib.pyplot import imshow
 from scipy.misc import imrotate
 from skimage import io
 from skimage.color import rgb2grey
@@ -63,6 +66,13 @@ class Image(object):
 
         self.landmark_points = landmark_points
         self.feature_points = feature_points
+
+    def show(self):
+        self.assert_valid_state()
+        imshow(self.image, cmap='Greys_r')
+        coord_transpose = np.transpose(self.landmark_points)
+        plt.scatter(coord_transpose[0], coord_transpose[1])
+        plt.show()
 
     def assert_valid_state(self):
         assert(self.image is not None)
