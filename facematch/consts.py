@@ -3,6 +3,9 @@ import os
 # Model
 NN1 = 'nn1'
 NN2 = 'nn2'
+batch_size = 32
+validation_split = .1
+nb_epoch = 20
 
 # Image processing
 norm_shape = 230, 230

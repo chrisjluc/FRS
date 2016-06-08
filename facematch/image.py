@@ -24,16 +24,16 @@ class Image(object):
 
         # Normalize face angle
 	face = fp.get_most_centre_face(img)
-
         if not face:
             raise NoFaceDetectedException()
-
         landmark_points = fp.get_facial_landmark_points(img, face)
         angle = fp.calculate_rotation(landmark_points)
         img = imrotate(img, -angle)
 
         # Normalize and crop image by centering around the facial features
         face = fp.get_most_centre_face(img)
+        if not face:
+            raise NoFaceDetectedException()
         landmark_points = fp.get_facial_landmark_points(img, face)
         feature_points = fp.get_facial_feature_points(img, face)
 

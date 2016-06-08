@@ -40,6 +40,9 @@ class Model(object):
     def score(self, user_id, image):
         raise NotImplementedError
 
+    def get_highest_score_user(self, image):
+        raise NotImplementedError
+
     def save(self):
         raise NotImplementedError
 
@@ -82,18 +85,30 @@ class NN2Model(Model):
         from keras.optimizers import SGD
 
         self.model.compile(loss='categorical_crossentropy', optimizer='sgd', metrics=['accuracy'])
-        self.model.fit(self.X_train, self.Y_train, batch_size=32, nb_epoch=10,
-                verbose=1, shuffle=True, validation_split=.15)
+        self.model.fit(self.X_train, self.Y_train, batch_size=consts.batch_size, nb_epoch=consts.nb_epoch,
+                verbose=1, shuffle=True, validation_split=consts.validation_split)
 
         self.model.compile(loss='categorical_crossentropy', optimizer=SGD(lr=0.001), metrics=['accuracy'])
-        self.model.fit(self.X_train, self.Y_train, batch_size=32, nb_epoch=10,
-                verbose=1, shuffle=True, validation_split=.15)
+        self.model.fit(self.X_train, self.Y_train, batch_size=consts.batch_size, nb_epoch=consts.nb_epoch,
+                verbose=1, shuffle=True, validation_split=consts.validation_split)
 
     def score(self, user_id, image):
         X_test, _ = self._process_data([[image]])
         X_test, _ = self._reshape_data(X_test, _)
         proba = self.model.predict_proba(X_test)
         return proba[0][self.id_to_idx[user_id]]
+
+    def get_highest_score_user(self, image):
+        X_test, _ = self._process_data([[image]])
+        X_test, _ = self._reshape_data(X_test, _)
+        proba = self.model.predict_proba(X_test)
+        max_prob = 0
+        max_idx = None
+        for idx, prob in proba:
+            if prob > max_prob:
+                max_prob = prob
+                max_idx = idx
+        return self.ids[idx]
 
     def save(self):
         w = Writer()

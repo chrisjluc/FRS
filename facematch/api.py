@@ -24,6 +24,9 @@ class API(object):
 
     def compute_score(self, user_id, image):
         """
+        Retrieves the similarity score of the given image
+        with the given user_id
+
         Note: Image isn't persisted.
         To persist an image call add_image(user_id, image)
 
@@ -36,6 +39,23 @@ class API(object):
 
         im = Image(image)
         return self.model.score(user_id, im)
+
+    def get_highest_score_user(self, image):
+        """
+        Retrieves the user_id with the
+        highest similiarity score with the image.
+
+        Note: Image isn't persisted.
+        To persist an image call add_image(user_id, image)
+
+        params:
+        image: either a string of the filename or numpy array of an RGB image
+        """
+        if not self.model:
+            raise Exception('Model isn\'t loaded. Call load_model()')
+
+        im = Image(image)
+        return self.model.get_highest_score_user(im)
 
     def train(self):
         """
