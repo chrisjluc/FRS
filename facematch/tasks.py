@@ -16,8 +16,3 @@ class TrainingTask(GPUTask):
         model = self.model_cls(self.images, self.user_ids, self.model_name)
         model.train()
         model.save()
-
-class ScoringTask(GPUTask):
-
-    def run(self):
-        pass

@@ -43,6 +43,9 @@ class TaskManager(object):
                 break
         if not gpu_lock:
             raise Exception('Unable to obtain a gpu lock')
+        if not gpu_lock_index:
+            raise Exception('Unable to obtain a gpu lock index')
+
         gpu_lock.acquire()
 #        print 'GPU acquired: ' + str(gpu_lock_index)
         self.lock_for_gpu_lock.release()
