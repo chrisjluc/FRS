@@ -8,20 +8,13 @@ import numpy as np
 class Model(object):
 
     def __init__(self, images, ids, name):
+        self.X_train = None
+        self.Y_train = None
         self.nb_classes = len(ids)
         self.images = images
         self.ids = ids
         self.name = name
         self.id_to_idx = dict([(x[1], x[0]) for x in enumerate(ids)])
-
-    def _process_data(self):
-        raise NotImplementedError
-
-    def _shuffle_data(self, X, y):
-        zipped = np.array(zip(X, y))
-        np.random.shuffle(zipped)
-        return (np.array([x[0] for x in zipped]),
-                np.array([x[1] for x in zipped]))
 
     def _reshape_data(self, X, y):
         from keras.utils import np_utils
@@ -31,9 +24,10 @@ class Model(object):
     def _train(self):
         raise NotImplementedError
 
+    def _get_image_window_index(self):
+        raise NotImplementedError
+
     def train(self):
-        X, y = self._process_data(self.images)
-        X, y = self._shuffle_data(X, y)
         self.X_train, self.Y_train = self._reshape_data(X, y)
         self._train()
 
@@ -45,41 +39,6 @@ class Model(object):
 
     def save(self):
         raise NotImplementedError
-
-
-class NN2Model(Model):
-
-    def __init__(self, images, ids, name):
-        super(NN2Model, self).__init__(
-                images,
-                ids,
-                name
-        )
-        self.input_shape = consts.nn2_input_shape
-        self.model = _NN2(self.nb_classes, self.input_shape)
-
-    def _process_data(self, data):
-        image_shape = self.input_shape[1], self.input_shape[2]
-        data = [[ip.get_image_window(
-                    image.image,
-                    image_shape,
-                    image.landmark_points[4])
-                for image in images]
-                for images in data]
-
-        X = np.array([image
-                for images in data
-                for image in images
-                if image.shape == image_shape
-                ])
-
-        y = np.array([images[0]
-                for images in enumerate(data)
-                for image in images[1]
-                if image.shape == image_shape
-                ])
-
-        return X, y
 
     def _train(self):
         from keras.optimizers import SGD
@@ -113,6 +72,70 @@ class NN2Model(Model):
     def save(self):
         w = Writer()
         w.save_model(self.model, self.name)
+
+class NN1Model(Model):
+
+    def __init__(self, images, ids, name):
+        super(NN1Model, self).__init__(
+                images,
+                ids,
+                name
+        )
+        self.input_shape = consts.nn1_input_shape
+        self.model = _NN1(self.nb_classes, self.input_shape)
+
+
+class NN2Model(Model):
+
+    def __init__(self, images, ids, name):
+        super(NN2Model, self).__init__(
+                images,
+                ids,
+                name
+        )
+        self.input_shape = consts.nn2_input_shape
+        self.model = _NN2(self.nb_classes, self.input_shape)
+
+
+class CNNH1Model(NN2Model):
+
+    def _get_image_window_index(self):
+        return 4
+
+class CNNP1Model(NN1Model):
+
+    def _get_image_window_index(self):
+        return 0
+
+
+class CNNP2Model(NN1Model):
+
+    def _get_image_window_index(self):
+        return 1
+
+
+class CNNP3Model(NN1Model):
+
+    def _get_image_window_index(self):
+        return 2
+
+
+class CNNP4Model(NN1Model):
+
+    def _get_image_window_index(self):
+        return 3
+
+
+class CNNP5Model(NN1Model):
+
+    def _get_image_window_index(self):
+        return 4
+
+
+class CNNP6Model(NN1Model):
+
+    def _get_image_window_index(self):
+        return 5
 
 
 def _NN1(nb_classes, input_shape):

@@ -1,5 +1,7 @@
 import consts
+
 import image_processing as ip
+import data_processing as dp
 
 from image import Image
 from storage import Reader, Writer
@@ -66,10 +68,10 @@ class API(object):
         for user_id in user_ids:
             images.append(self.reader.get_images(user_id))
         # Data augmentation
-        cloned_images = ip.clone_images(images, 1)
+        cloned_images = dp.clone(images, 1)
         reflected_images = ip.apply_reflection(cloned_images)
-        images = ip.merge(images, reflected_images)
-        images = ip.clone_images(images, 2)
+        images = dp.merge(images, reflected_images)
+        images = dp.clone(images, 2)
         images = ip.apply_noise(images)
 
         tasks = [TrainingTask(NN2Model, images, user_ids, consts.NN2)]

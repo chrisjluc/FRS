@@ -4,20 +4,6 @@ import copy
 import numpy as np
 from scipy.ndimage.filters import gaussian_filter
 
-def clone_images(images, factor):
-    """
-    images: list of list of images
-    factor: int
-    """
-    cloned_images = []
-    for _images in images:
-        _cloned_images = []
-        for i in range(factor):
-            _cloned_images += copy.deepcopy(_images)
-        cloned_images.append(_cloned_images)
-    assert(len(images) == len(cloned_images))
-    return cloned_images
-
 def _reflection(image):
     im, feature_points, landmark_points = image.image, image.feature_points, image.landmark_points
     feature_points = [(im.shape[1] - p[0], p[1]) for p in feature_points]
@@ -81,25 +67,6 @@ def apply_noise(images):
             [_apply_noise(image) for image in _images]
             for _images in images
             ]
-
-def merge(a, b):
-    """
-    args:
-    a - list of list of images
-    b - list of list of images
-
-    Returns:
-    Merged list of list of images
-    """
-    if len(a) != len(b):
-        raise Exception('a and b should have the same length')
-
-    merged = []
-    for x, y in zip(a, b):
-        merged.append(x + y)
-    assert(len(merged) == len(a))
-    return merged
-
 
 def get_image_window(image, size, point):
     """
