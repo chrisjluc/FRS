@@ -6,7 +6,7 @@ import data_processing as dp
 from image import Image
 from storage import Reader, Writer
 from models import NN1Model, NN2Model
-from tasks import TrainingTask
+from tasks import TrainingTask, ActivationExtractionTask
 from task_manager import TaskManager
 
 class API(object):
@@ -20,9 +20,18 @@ class API(object):
         Retrieves model if it has been trained
         """
         user_ids = self.reader.get_user_ids()
-        self.model_name = consts.NN2
-        self.model = NN2Model(None, user_ids, self.model_name)
-        self.model.model = self.reader.get_model(self.model_name)
+        self.models = [
+                NN2Model('CNNH1', user_ids),
+                NN1Model('CNNP1', user_ids),
+                NN1Model('CNNP2', user_ids),
+                NN1Model('CNNP3', user_ids),
+                NN1Model('CNNP4', user_ids),
+                NN1Model('CNNP5', user_ids),
+                NN1Model('CNNP6', user_ids)
+                ]
+
+        for model in self.models:
+            model.load()
 
     def compute_score(self, user_id, image):
         """
@@ -76,6 +85,7 @@ class API(object):
         data = dp.create_training_data_for_mmdfr(images)
         data_h1, data_p1, data_p2, data_p3, data_p4, data_p5, data_p6, data_y = data
 
+        """
         tasks = [
                 TrainingTask(NN2Model, data_h1, data_y, user_ids, 'CNNH1'),
                 TrainingTask(NN1Model, data_p1, data_y, user_ids, 'CNNP1'),
@@ -85,8 +95,25 @@ class API(object):
                 TrainingTask(NN1Model, data_p5, data_y, user_ids, 'CNNP5'),
                 TrainingTask(NN1Model, data_p6, data_y, user_ids, 'CNNP6')
                 ]
+
         task_manager = TaskManager(tasks)
         task_manager.run_tasks()
+
+        """
+        tasks = [
+                ActivationExtractionTask(NN2Model, 'CNNH1', data_h1, user_ids),
+                ActivationExtractionTask(NN1Model, 'CNNP1', data_p1, user_ids),
+                ActivationExtractionTask(NN1Model, 'CNNP2', data_p2, user_ids),
+                ActivationExtractionTask(NN1Model, 'CNNP3', data_p3, user_ids),
+                ActivationExtractionTask(NN1Model, 'CNNP4', data_p4, user_ids),
+                ActivationExtractionTask(NN1Model, 'CNNP5', data_p5, user_ids),
+                ActivationExtractionTask(NN1Model, 'CNNP6', data_p6, user_ids),
+                ]
+
+        task_manager = TaskManager(tasks)
+        task_manager.run_tasks()
+
+
 
     def add_image(self, user_id, image):
         """

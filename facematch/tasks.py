@@ -14,6 +14,19 @@ class TrainingTask(GPUTask):
         self.model_name = model_name
 
     def run(self):
-        model = self.model_cls(self.X_train, self.Y_train, self.user_ids, self.model_name)
+        model = self.model_cls(self.model_name, self.user_ids, self.X_train, self.Y_train)
         model.train()
         model.save()
+
+
+class ActivationExtractionTask(GPUTask):
+
+    def __init__(self, model_cls, model_name, X_train, user_ids):
+        self.model_cls = model_cls
+        self.model_name = model_name
+        self.X_train = X_train
+        self.user_ids = user_ids
+
+    def run(self):
+        model = self.model_cls(self.model_name, self.user_ids, self.X_train, self.X_train)
+        model.save_activations()

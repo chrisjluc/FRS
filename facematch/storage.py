@@ -46,6 +46,9 @@ class Writer(Storage):
         open(model_path + consts.json_ext, 'w').write(json)
         model.save_weights(model_path + consts.h5_ext, overwrite=True)
 
+    def save_activations(self, activations, model_name):
+        pass
+
 
 class Reader(Storage):
 
@@ -86,3 +89,6 @@ class Reader(Storage):
         model = model_from_json(open(model_file).read())
         model.load_weights(weight_file)
         return model
+
+    def load_activations(self, model_name):
+        pass

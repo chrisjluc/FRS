@@ -3,9 +3,15 @@ import os
 # Model
 NN1 = 'nn1'
 NN2 = 'nn2'
-batch_size = 32
-validation_split = .15
-nb_epoch = 10
+
+cnn_batch_size = 32
+cnn_validation_split = .15
+cnn_nb_epoch = 10
+cnn_activation_batch_size = 512
+
+sae_batch_size = 256
+sae_nb_epoch = 10
+sae_validation_split =.15
 
 # Image processing
 norm_shape = 230, 230
