@@ -5,7 +5,7 @@ import data_processing as dp
 
 from image import Image
 from storage import Reader, Writer
-from models import NN2Model
+from models import NN1Model, NN2Model
 from tasks import TrainingTask
 from task_manager import TaskManager
 
@@ -73,8 +73,18 @@ class API(object):
         images = dp.merge(images, reflected_images)
         images = dp.clone(images, 2)
         images = ip.apply_noise(images)
+        data = dp.create_training_data_for_mmdfr(images)
+        data_h1, data_p1, data_p2, data_p3, data_p4, data_p5, data_p6, data_y = data
 
-        tasks = [TrainingTask(NN2Model, images, user_ids, consts.NN2)]
+        tasks = [
+                TrainingTask(NN2Model, data_h1, data_y, user_ids, 'CNNH1'),
+                TrainingTask(NN1Model, data_p1, data_y, user_ids, 'CNNP1'),
+                TrainingTask(NN1Model, data_p2, data_y, user_ids, 'CNNP2'),
+                TrainingTask(NN1Model, data_p3, data_y, user_ids, 'CNNP3'),
+                TrainingTask(NN1Model, data_p4, data_y, user_ids, 'CNNP4'),
+                TrainingTask(NN1Model, data_p5, data_y, user_ids, 'CNNP5'),
+                TrainingTask(NN1Model, data_p6, data_y, user_ids, 'CNNP6')
+                ]
         task_manager = TaskManager(tasks)
         task_manager.run_tasks()
 

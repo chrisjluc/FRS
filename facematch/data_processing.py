@@ -1,6 +1,9 @@
 import copy
 import numpy as np
 
+import consts
+import image_processing as ip
+
 
 def merge(a, b):
     """
@@ -35,36 +38,50 @@ def clone(images, factor):
     assert(len(images) == len(cloned_images))
     return cloned_images
 
-def flatten(images):
-    pass
-
-def shuffle(images);
-    zipped = np.array(zip(X, y))
-    np.random.shuffle(zipped)
-    return (np.array([x[0] for x in zipped]),
-            np.array([x[1] for x in zipped]))
-
-def _process_data(self, data):
-    image_shape = self.input_shape[1], self.input_shape[2]
-    data = [[ip.get_image_window(
-                image.image,
-                image_shape,
-                image.landmark_points[
-                    self._get_image_window_index()])
-            for image in images]
-            for images in data]
-
-    X = np.array([image
-            for images in data
+def _get_images_window(data, rows, cols, landmark_index):
+    temp_images_by_class = [None for _ in range(len(data))]
+    for i in range(len(data)):
+        temp_images_by_class[i] = [ip.get_image_window(
+                    image.image,
+                    (rows, cols),
+                    image.landmark_points[landmark_index]) for image in data[i]]
+    images = [image
+            for images in temp_images_by_class
             for image in images
-            if image.shape == image_shape
-            ])
+            ]
+    return images
 
-    y = np.array([images[0]
-            for images in enumerate(data)
-            for image in images[1]
-            if image.shape == image_shape
-            ])
-    return X, y
+def create_training_data_for_mmdfr(data):
+    data_h1 = _get_images_window(data, consts.nn2_input_shape[1], consts.nn2_input_shape[2], 4)
+    data_p1 = _get_images_window(data, consts.nn1_input_shape[1], consts.nn1_input_shape[2], 0)
+    data_p2 = _get_images_window(data, consts.nn1_input_shape[1], consts.nn1_input_shape[2], 1)
+    data_p3 = _get_images_window(data, consts.nn1_input_shape[1], consts.nn1_input_shape[2], 2)
+    data_p4 = _get_images_window(data, consts.nn1_input_shape[1], consts.nn1_input_shape[2], 3)
+    data_p5 = _get_images_window(data, consts.nn1_input_shape[1], consts.nn1_input_shape[2], 4)
+    data_p6 = _get_images_window(data, consts.nn1_input_shape[1], consts.nn1_input_shape[2], 5)
+    data_y = [images[0] for images in enumerate(data) for image in images[1]]
 
+    zipped_data = np.array(zip(data_h1, data_p1, data_p2, data_p3, data_p4, data_p5, data_p6, data_y))
+
+    zipped_data = [images
+            for images in zipped_data
+            if images[0].shape == (consts.nn2_input_shape[1], consts.nn2_input_shape[2])
+            and images[1].shape == (consts.nn1_input_shape[1], consts.nn1_input_shape[2])
+            and images[2].shape == (consts.nn1_input_shape[1], consts.nn1_input_shape[2])
+            and images[3].shape == (consts.nn1_input_shape[1], consts.nn1_input_shape[2])
+            and images[4].shape == (consts.nn1_input_shape[1], consts.nn1_input_shape[2])
+            and images[5].shape == (consts.nn1_input_shape[1], consts.nn1_input_shape[2])
+            and images[6].shape == (consts.nn1_input_shape[1], consts.nn1_input_shape[2])
+            ]
+
+    np.random.shuffle(zipped_data)
+
+    return (np.array([x[0] for x in zipped_data]),
+            np.array([x[1] for x in zipped_data]),
+            np.array([x[2] for x in zipped_data]),
+            np.array([x[3] for x in zipped_data]),
+            np.array([x[4] for x in zipped_data]),
+            np.array([x[5] for x in zipped_data]),
+            np.array([x[6] for x in zipped_data]),
+            np.array([x[7] for x in zipped_data]))
 

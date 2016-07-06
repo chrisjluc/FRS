@@ -7,11 +7,10 @@ import numpy as np
 
 class Model(object):
 
-    def __init__(self, images, ids, name):
-        self.X_train = None
-        self.Y_train = None
+    def __init__(self, X_train, Y_train, ids, name):
+        self.X_train = X_train
+        self.Y_train = Y_train
         self.nb_classes = len(ids)
-        self.images = images
         self.ids = ids
         self.name = name
         self.id_to_idx = dict([(x[1], x[0]) for x in enumerate(ids)])
@@ -21,15 +20,8 @@ class Model(object):
         return  (X.reshape(X.shape[0], 1, self.input_shape[1], self.input_shape[2]),
         np_utils.to_categorical(y, self.nb_classes))
 
-    def _train(self):
-        raise NotImplementedError
-
-    def _get_image_window_index(self):
-        raise NotImplementedError
-
     def train(self):
-        self.X_train, self.Y_train = self._reshape_data(X, y)
-        self._train()
+        raise NotImplementedError
 
     def score(self, user_id, image):
         raise NotImplementedError
@@ -38,7 +30,10 @@ class Model(object):
         raise NotImplementedError
 
     def save(self):
-        raise NotImplementedError
+        w = Writer()
+        w.save_model(self.model, self.name)
+
+class CNNModel(Model):
 
     def _train(self):
         from keras.optimizers import SGD
@@ -52,13 +47,13 @@ class Model(object):
                 verbose=1, shuffle=True, validation_split=consts.validation_split)
 
     def score(self, user_id, image):
-        X_test, _ = self._process_data([[image]])
+        #X_test, _ = self._process_data([[image]])
         X_test, _ = self._reshape_data(X_test, _)
         proba = self.model.predict_proba(X_test)
         return proba[0][self.id_to_idx[user_id]]
 
     def get_highest_score_user(self, image):
-        X_test, _ = self._process_data([[image]])
+        #X_test, _ = self._process_data([[image]])
         X_test, _ = self._reshape_data(X_test, _)
         proba = self.model.predict_proba(X_test)
         max_prob = 0
@@ -69,15 +64,17 @@ class Model(object):
                 max_idx = idx
         return self.ids[idx]
 
-    def save(self):
-        w = Writer()
-        w.save_model(self.model, self.name)
+    def train(self):
+        self.X_train, self.Y_train = self._reshape_data(self.X_train, self.Y_train)
+        self._train()
 
-class NN1Model(Model):
 
-    def __init__(self, images, ids, name):
+class NN1Model(CNNModel):
+
+    def __init__(self, X_train, Y_train, ids, name):
         super(NN1Model, self).__init__(
-                images,
+                X_train,
+                Y_train,
                 ids,
                 name
         )
@@ -85,57 +82,17 @@ class NN1Model(Model):
         self.model = _NN1(self.nb_classes, self.input_shape)
 
 
-class NN2Model(Model):
+class NN2Model(CNNModel):
 
-    def __init__(self, images, ids, name):
+    def __init__(self, X_train, Y_train, ids, name):
         super(NN2Model, self).__init__(
-                images,
+                X_train,
+                Y_train,
                 ids,
                 name
         )
         self.input_shape = consts.nn2_input_shape
         self.model = _NN2(self.nb_classes, self.input_shape)
-
-
-class CNNH1Model(NN2Model):
-
-    def _get_image_window_index(self):
-        return 4
-
-class CNNP1Model(NN1Model):
-
-    def _get_image_window_index(self):
-        return 0
-
-
-class CNNP2Model(NN1Model):
-
-    def _get_image_window_index(self):
-        return 1
-
-
-class CNNP3Model(NN1Model):
-
-    def _get_image_window_index(self):
-        return 2
-
-
-class CNNP4Model(NN1Model):
-
-    def _get_image_window_index(self):
-        return 3
-
-
-class CNNP5Model(NN1Model):
-
-    def _get_image_window_index(self):
-        return 4
-
-
-class CNNP6Model(NN1Model):
-
-    def _get_image_window_index(self):
-        return 5
 
 
 def _NN1(nb_classes, input_shape):

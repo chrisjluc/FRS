@@ -43,7 +43,7 @@ class TaskManager(object):
                 break
         if not gpu_lock:
             raise Exception('Unable to obtain a gpu lock')
-        if not gpu_lock_index:
+        if gpu_lock_index is None:
             raise Exception('Unable to obtain a gpu lock index')
 
         gpu_lock.acquire()
