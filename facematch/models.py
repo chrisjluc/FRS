@@ -112,27 +112,27 @@ class CNNModel(Model):
         self._train()
 
     def save_activations(self):
-        if not self.model:
-            self.load()
-            self.X_train = self.X_train.reshape(X.shape[0], 1, self.input_shape[1], self.input_shape[2])
-
+        self.X_train = self.X_train.reshape(self.X_train.shape[0], 1, self.input_shape[1], self.input_shape[2])
         activations = self.get_activations()
         w = Writer()
         w.save_activations(activations, self.name)
 
     def get_activations(self):
-        activations = np.array([])
+        activations = None
         batch_size = consts.cnn_activation_batch_size
-        for i in range(0, self.X_train.shape[0] / batch_size + 1):
-            activations = np.concatenate(activations,
-                                        self._get_activations_batch(self.X_train[batch_size * i: batch_size * (i + 1)]))
+        for i in range(int(self.X_train.shape[0] / batch_size) + 1):
+            a = self._get_activations_batch(self.X_train[batch_size * i:batch_size * (i + 1)])
+            if activations is None:
+                activations = a
+            else:
+                activations = np.concatenate((activations, a))
         return activations
 
     def _get_activations_batch(self, batch):
         from keras import backend as K
         fn = K.function([self.model.layers[0].input, K.learning_phase()], [self.model.layers[-2].output,])
         activations = fn([batch,0])
-        return activations
+        return np.array(activations)[0]
 
 
 class NN1Model(CNNModel):

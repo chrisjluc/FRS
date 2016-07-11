@@ -79,13 +79,14 @@ class API(object):
         # Data augmentation
         cloned_images = dp.clone(images, 1)
         reflected_images = ip.apply_reflection(cloned_images)
+        # Combine reflected and normal images
         images = dp.merge(images, reflected_images)
         images = dp.clone(images, 2)
+        # Apply Random gaussian noise
         images = ip.apply_noise(images)
         data = dp.create_training_data_for_mmdfr(images)
         data_h1, data_p1, data_p2, data_p3, data_p4, data_p5, data_p6, data_y = data
 
-        """
         tasks = [
                 TrainingTask(NN2Model, data_h1, data_y, user_ids, 'CNNH1'),
                 TrainingTask(NN1Model, data_p1, data_y, user_ids, 'CNNP1'),
@@ -95,11 +96,9 @@ class API(object):
                 TrainingTask(NN1Model, data_p5, data_y, user_ids, 'CNNP5'),
                 TrainingTask(NN1Model, data_p6, data_y, user_ids, 'CNNP6')
                 ]
-
         task_manager = TaskManager(tasks)
         task_manager.run_tasks()
 
-        """
         tasks = [
                 ActivationExtractionTask(NN2Model, 'CNNH1', data_h1, user_ids),
                 ActivationExtractionTask(NN1Model, 'CNNP1', data_p1, user_ids),
@@ -109,10 +108,10 @@ class API(object):
                 ActivationExtractionTask(NN1Model, 'CNNP5', data_p5, user_ids),
                 ActivationExtractionTask(NN1Model, 'CNNP6', data_p6, user_ids),
                 ]
-
         task_manager = TaskManager(tasks)
         task_manager.run_tasks()
 
+        #TODO: Train SAE
 
 
     def add_image(self, user_id, image):

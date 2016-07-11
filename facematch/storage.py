@@ -47,7 +47,8 @@ class Writer(Storage):
         model.save_weights(model_path + consts.h5_ext, overwrite=True)
 
     def save_activations(self, activations, model_name):
-        pass
+        model_path = os.path.join(consts.model_path, model_name)
+        np.save(model_path + consts.activations_ext, activations)
 
 
 class Reader(Storage):
@@ -91,4 +92,5 @@ class Reader(Storage):
         return model
 
     def load_activations(self, model_name):
-        pass
+        model_path = os.path.join(consts.model_path, model_name)
+        return np.load(model_path + consts.activations_ext)

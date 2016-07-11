@@ -29,4 +29,5 @@ class ActivationExtractionTask(GPUTask):
 
     def run(self):
         model = self.model_cls(self.model_name, self.user_ids, self.X_train, self.X_train)
+        model.load()
         model.save_activations()

@@ -28,6 +28,7 @@ model_path = os.path.join(data_path, 'models')
 image_ext = '_image.npy'
 landmarks_ext = '_landmarks.npy'
 features_ext = '_features.npy'
+activations_ext = '_activations.npy'
 json_ext = '.json'
 h5_ext = '.h5'
 
