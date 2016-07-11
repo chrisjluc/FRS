@@ -72,6 +72,15 @@ class API(object):
         """
         Trains the model on all images that are currently in storage
         """
+        # Allow user to set model name
+        cnn_h1 = 'CNNH1'
+        cnn_p1 = 'CNNP1'
+        cnn_p2 = 'CNNP2'
+        cnn_p3 = 'CNNP3'
+        cnn_p4 = 'CNNP4'
+        cnn_p5 = 'CNNP5'
+        cnn_p6 = 'CNNP6'
+
         user_ids = self.reader.get_user_ids()
         images = []
         for user_id in user_ids:
@@ -88,28 +97,38 @@ class API(object):
         data_h1, data_p1, data_p2, data_p3, data_p4, data_p5, data_p6, data_y = data
 
         tasks = [
-                TrainingTask(NN2Model, data_h1, data_y, user_ids, 'CNNH1'),
-                TrainingTask(NN1Model, data_p1, data_y, user_ids, 'CNNP1'),
-                TrainingTask(NN1Model, data_p2, data_y, user_ids, 'CNNP2'),
-                TrainingTask(NN1Model, data_p3, data_y, user_ids, 'CNNP3'),
-                TrainingTask(NN1Model, data_p4, data_y, user_ids, 'CNNP4'),
-                TrainingTask(NN1Model, data_p5, data_y, user_ids, 'CNNP5'),
-                TrainingTask(NN1Model, data_p6, data_y, user_ids, 'CNNP6')
-                ]
+            TrainingTask(NN2Model, data_h1, data_y, user_ids, cnn_h1),
+            TrainingTask(NN1Model, data_p1, data_y, user_ids, cnn_p1),
+            TrainingTask(NN1Model, data_p2, data_y, user_ids, cnn_p2),
+            TrainingTask(NN1Model, data_p3, data_y, user_ids, cnn_p3),
+            TrainingTask(NN1Model, data_p4, data_y, user_ids, cnn_p4),
+            TrainingTask(NN1Model, data_p5, data_y, user_ids, cnn_p5),
+            TrainingTask(NN1Model, data_p6, data_y, user_ids, cnn_p6)
+            ]
         task_manager = TaskManager(tasks)
         task_manager.run_tasks()
 
         tasks = [
-                ActivationExtractionTask(NN2Model, 'CNNH1', data_h1, user_ids),
-                ActivationExtractionTask(NN1Model, 'CNNP1', data_p1, user_ids),
-                ActivationExtractionTask(NN1Model, 'CNNP2', data_p2, user_ids),
-                ActivationExtractionTask(NN1Model, 'CNNP3', data_p3, user_ids),
-                ActivationExtractionTask(NN1Model, 'CNNP4', data_p4, user_ids),
-                ActivationExtractionTask(NN1Model, 'CNNP5', data_p5, user_ids),
-                ActivationExtractionTask(NN1Model, 'CNNP6', data_p6, user_ids),
-                ]
+            ActivationExtractionTask(NN2Model, cnn_h1, data_h1, user_ids),
+            ActivationExtractionTask(NN1Model, cnn_p1, data_p1, user_ids),
+            ActivationExtractionTask(NN1Model, cnn_p2, data_p2, user_ids),
+            ActivationExtractionTask(NN1Model, cnn_p3, data_p3, user_ids),
+            ActivationExtractionTask(NN1Model, cnn_p4, data_p4, user_ids),
+            ActivationExtractionTask(NN1Model, cnn_p5, data_p5, user_ids),
+            ActivationExtractionTask(NN1Model, cnn_p6, data_p6, user_ids)
+            ]
         task_manager = TaskManager(tasks)
         task_manager.run_tasks()
+
+        activations = [
+            self.reader.load_activations(cnn_h1),
+            self.reader.load_activations(cnn_p1),
+            self.reader.load_activations(cnn_p2),
+            self.reader.load_activations(cnn_p3),
+            self.reader.load_activations(cnn_p4),
+            self.reader.load_activations(cnn_p5),
+            self.reader.load_activations(cnn_p6)
+            ]
 
         #TODO: Train SAE
 
