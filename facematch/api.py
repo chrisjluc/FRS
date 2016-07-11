@@ -68,11 +68,17 @@ class API(object):
         im = Image(image)
         return self.model.get_highest_score_user(im)
 
+    def get_face_vector(self, image):
+        pass
+
+    def compute_score(self, face_vec_1, face_vec_2):
+        pass
+
     def train(self):
         """
         Trains the model on all images that are currently in storage
         """
-        # Allow user to set model name
+        #TODO:  Allow user to set model name
         cnn_h1 = 'CNNH1'
         cnn_p1 = 'CNNP1'
         cnn_p2 = 'CNNP2'
