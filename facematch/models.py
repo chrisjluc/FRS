@@ -23,11 +23,16 @@ class Model(object):
     def train(self):
         raise NotImplementedError
 
-    def score(self, user_id, image):
+    def get_activations(self, data):
         raise NotImplementedError
 
-    def get_highest_score_user(self, image):
-        raise NotImplementedError
+    def save_activations(self):
+        self._save_activations()
+
+    def _save_activations(self):
+        activations = self.get_activations()
+        w = Writer()
+        w.save_activations(activations, self.name)
 
     def save(self):
         w = Writer()
@@ -112,27 +117,13 @@ class CNNModel(Model):
         proba = self.model.predict_proba(X_test)
         return proba[0][self.id_to_idx[user_id]]
 
-    def get_highest_score_user(self, image):
-        #X_test, _ = self._process_data([[image]])
-        X_test, _ = self._reshape_data(X_test, _)
-        proba = self.model.predict_proba(X_test)
-        max_prob = 0
-        max_idx = None
-        for idx, prob in proba:
-            if prob > max_prob:
-                max_prob = prob
-                max_idx = idx
-        return self.ids[idx]
-
     def train(self):
         self.X_train, self.Y_train = self._reshape_data(self.X_train, self.Y_train)
         self._train()
 
     def save_activations(self):
         self.X_train = self.X_train.reshape(self.X_train.shape[0], 1, self.input_shape[1], self.input_shape[2])
-        activations = self.get_activations()
-        w = Writer()
-        w.save_activations(activations, self.name)
+        self._save_activations()
 
     def get_activations(self):
         activations = None

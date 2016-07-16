@@ -48,7 +48,5 @@ class TrainingAutoEncoderTask(GPUTask):
     def run(self):
         model = AutoEncoderModel(self.model_name, self.input_size, self.encoding_size, self.X_train)
         model.train()
-        activations = model.get_activations(self.X_train)
-        w = Writer()
-        w.save_activations(activations, self.model_name)
+        model.save_activations()
 

@@ -4,9 +4,6 @@ from multiprocessing import Process
 from threading import Thread, BoundedSemaphore, Lock
 
 def _run_task_with_gpu(task, gpu):
-    # consider approach
-    # import os
-    # os.environ["THEANO_FLAGS"] = "mode=FAST_RUN,device=cpu,floatX=float32"
     import theano.sandbox.cuda
     theano.sandbox.cuda.use(gpu)
     task.run()
@@ -31,7 +28,6 @@ class TaskManager(object):
 
     def _run_task(self, task):
         self.semaphore.acquire()
-#        print 'Semaphore acquired'
         gpu_lock_index = None
         gpu_lock = None
 
@@ -47,7 +43,6 @@ class TaskManager(object):
             raise Exception('Unable to obtain a gpu lock index')
 
         gpu_lock.acquire()
-#        print 'GPU acquired: ' + str(gpu_lock_index)
         self.lock_for_gpu_lock.release()
 
         p = Process(
@@ -58,7 +53,5 @@ class TaskManager(object):
         p.join()
 
         gpu_lock.release()
-#        print 'GPU released: ' + str(gpu_lock_index)
         self.semaphore.release()
-#        print 'Semaphore released'
 
