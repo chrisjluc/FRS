@@ -30,7 +30,7 @@ class Model(object):
         self._save_activations()
 
     def _save_activations(self):
-        activations = self.get_activations()
+        activations = self.get_activations(self.X_train)
         w = Writer()
         w.save_activations(activations, self.name)
 
@@ -125,11 +125,11 @@ class CNNModel(Model):
         self.X_train = self.X_train.reshape(self.X_train.shape[0], 1, self.input_shape[1], self.input_shape[2])
         self._save_activations()
 
-    def get_activations(self):
+    def get_activations(self, data):
         activations = None
         batch_size = consts.cnn_activation_batch_size
-        for i in range(int(self.X_train.shape[0] / batch_size) + 1):
-            a = self._get_activations_batch(self.X_train[batch_size * i:batch_size * (i + 1)])
+        for i in range(int(data.shape[0] / batch_size) + 1):
+            a = self._get_activations_batch(data[batch_size * i:batch_size * (i + 1)])
             if activations is None:
                 activations = a
             else:
