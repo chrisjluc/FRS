@@ -10,10 +10,10 @@ class Model(object):
     def __init__(self, name, ids, X_train=None, Y_train=None):
         self.X_train = X_train
         self.Y_train = Y_train
-        self.nb_classes = len(ids)
         self.ids = ids
         self.name = name
-        self.id_to_idx = dict([(x[1], x[0]) for x in enumerate(ids)])
+        self.nb_classes = len(ids) if ids else 0
+        self.id_to_idx = dict([(x[1], x[0]) for x in enumerate(ids)]) if ids else None
 
     def _reshape_data(self, X, y):
         from keras.utils import np_utils
@@ -40,31 +40,48 @@ class Model(object):
 
 class AutoEncoderModel(Model):
 
-    def __init__(self, name, ids, input_size, encoding_size, X_train=None, Y_train=None):
+    def __init__(self, name, input_size, encoding_size, X_train):
         super(AutoEncoderModel, self).__init__(
                 name,
-                ids,
+                None,
                 X_train,
-                Y_train
+                None
         )
         self.input_size = input_size
         self.encoding_size = encoding_size
-        self.model, self.encoder = _initAutoEncoder(self.input_size, self.encoding_size)
+        self.autoencoder, self.encoder = _initAutoEncoder(self.input_size, self.encoding_size)
 
     def train(self):
-        autoencoder.compile(optimizer='adadelta', loss='binary_crossentropy', metrics=['accuracy'])
-        autoencoder.fit(
-                X_train,
-                X_train,
+        self.autoencoder.compile(optimizer='adadelta', loss='binary_crossentropy', metrics=['accuracy'])
+        self.autoencoder.fit(
+                self.X_train,
+                self.X_train,
                 nb_epoch=consts.sae_nb_epoch,
                 batch_size=consts.sae_batch_size,
                 shuffle=True,
                 validation_split=consts.sae_validation_split)
 
+    def get_activations(self, data):
+        if not self.encoder:
+            raise InvalidModelException('Encoder is not set')
+        activations = self.encoder.predict(data)
+        assert activations.shape[1] == self.encoding_size
+        return activations
 
-def _initAutoEncoder(input_size, encoded_size):
+    def save(self):
+        w = Writer()
+        w.save_model(self.autoencoder, self.name + consts.autoencoder_ext)
+        w.save_model(self.encoder, self.name + consts.encoder_ext)
+
+    def load(self):
+        r = Reader()
+        self.autoencoder = r.get_model(self.name)
+        self.encoder = r.get_model(self.name)
+
+
+def _initAutoEncoder(input_size, encoding_size):
     from keras.models import Model
-    from keras.layers.core import Dense
+    from keras.layers import Dense, Input
 
     _input = Input(shape=(input_size,))
     encoded = Dense(encoding_size, activation='sigmoid')(_input)
@@ -251,4 +268,7 @@ def _NN2(nb_classes, input_shape):
     return model
 
 class InvalidModelException(Exception):
+    pass
+
+class InvalidDataException(Exception):
     pass

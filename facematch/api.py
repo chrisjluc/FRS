@@ -2,11 +2,12 @@ import consts
 
 import image_processing as ip
 import data_processing as dp
+import numpy as np
 
 from image import Image
 from storage import Reader, Writer
-from models import NN1Model, NN2Model
-from tasks import TrainingTask, ActivationExtractionTask
+from models import NN1Model, NN2Model, AutoEncoderModel
+from tasks import TrainingTask, ActivationExtractionTask, TrainingAutoEncoderTask
 from task_manager import TaskManager
 
 class API(object):
@@ -86,6 +87,9 @@ class API(object):
         cnn_p4 = 'CNNP4'
         cnn_p5 = 'CNNP5'
         cnn_p6 = 'CNNP6'
+        sae_p1 = 'SAEP1'
+        sae_p2 = 'SAEP2'
+        sae_p3 = 'SAEP3'
 
         user_ids = self.reader.get_user_ids()
         images = []
@@ -102,6 +106,7 @@ class API(object):
         data = dp.create_training_data_for_mmdfr(images)
         data_h1, data_p1, data_p2, data_p3, data_p4, data_p5, data_p6, data_y = data
 
+        # Training CNNs
         tasks = [
             TrainingTask(NN2Model, data_h1, data_y, user_ids, cnn_h1),
             TrainingTask(NN1Model, data_p1, data_y, user_ids, cnn_p1),
@@ -114,6 +119,7 @@ class API(object):
         task_manager = TaskManager(tasks)
         task_manager.run_tasks()
 
+        # Extracting activations from 2nd last layer for SAE
         tasks = [
             ActivationExtractionTask(NN2Model, cnn_h1, data_h1, user_ids),
             ActivationExtractionTask(NN1Model, cnn_p1, data_p1, user_ids),
@@ -126,7 +132,8 @@ class API(object):
         task_manager = TaskManager(tasks)
         task_manager.run_tasks()
 
-        activations = [
+        # Training first layer in SAE
+        activations = np.concatenate((
             self.reader.load_activations(cnn_h1),
             self.reader.load_activations(cnn_p1),
             self.reader.load_activations(cnn_p2),
@@ -134,10 +141,22 @@ class API(object):
             self.reader.load_activations(cnn_p4),
             self.reader.load_activations(cnn_p5),
             self.reader.load_activations(cnn_p6)
-            ]
+            ), axis=1)
+        tasks = [TrainingAutoEncoderTask(sae_p1, activations, consts.sae_p1_input_size, consts.sae_p1_encoding_size)]
+        task_manager = TaskManager(tasks)
+        task_manager.run_tasks()
 
-        #TODO: Train SAE
+        # Training second layer in SAE
+        activations = self.reader.load_activations(sae_p1)
+        tasks = [TrainingAutoEncoderTask(sae_p2, activations, consts.sae_p1_encoding_size, consts.sae_p2_encoding_size)]
+        task_manager = TaskManager(tasks)
+        task_manager.run_tasks()
 
+        # Training third layer in SAE
+        activations = self.reader.load_activations(sae_p2)
+        tasks = [TrainingAutoEncoderTask(sae_p3, activations, consts.sae_p2_encoding_size, consts.sae_p3_encoding_size)]
+        task_manager = TaskManager(tasks)
+        task_manager.run_tasks()
 
     def add_image(self, user_id, image):
         """

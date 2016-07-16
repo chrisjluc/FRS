@@ -12,6 +12,10 @@ cnn_activation_batch_size = 512
 sae_batch_size = 256
 sae_nb_epoch = 10
 sae_validation_split =.15
+sae_p1_input_size = 3584
+sae_p1_encoding_size = 2048
+sae_p2_encoding_size = 1024
+sae_p3_encoding_size = 512
 
 # Image processing
 norm_shape = 230, 230
@@ -29,6 +33,8 @@ image_ext = '_image.npy'
 landmarks_ext = '_landmarks.npy'
 features_ext = '_features.npy'
 activations_ext = '_activations.npy'
+encoder_ext = '_sae_encoder.npy'
+autoencoder_ext = '_sae_autoencoder.npy'
 json_ext = '.json'
 h5_ext = '.h5'
 
