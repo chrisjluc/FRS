@@ -27,9 +27,6 @@ class Model(object):
         raise NotImplementedError
 
     def save_activations(self):
-        self._save_activations()
-
-    def _save_activations(self):
         activations = self.get_activations(self.X_train)
         w = Writer()
         w.save_activations(activations, self.name)
@@ -68,9 +65,7 @@ class AutoEncoderModel(Model):
                 validation_split=consts.sae_validation_split)
 
     def get_activations(self, data):
-        activations = self.encoder.predict(data)
-        assert activations.shape[1] == self.encoding_size
-        return activations
+        return self.encoder.predict(data)
 
     def save(self):
         w = Writer()
@@ -120,11 +115,8 @@ class CNNModel(Model):
         self.X_train, self.Y_train = self._reshape_data(self.X_train, self.Y_train)
         self._train()
 
-    def save_activations(self):
-        self.X_train = self.X_train.reshape(self.X_train.shape[0], 1, self.input_shape[1], self.input_shape[2])
-        self._save_activations()
-
     def get_activations(self, data):
+        data = data.reshape(data.shape[0], 1, data.shape[1], data.shape[2])
         activations = None
         batch_size = consts.cnn_activation_batch_size
         for i in range(int(data.shape[0] / batch_size) + 1):

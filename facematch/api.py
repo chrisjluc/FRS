@@ -38,7 +38,16 @@ class API(object):
             model.load()
 
     def get_face_vector(self, image):
-        pass
+        im = Image(image)
+        data = dp.create_training_data_for_mmdfr([[im]])
+        cnn_models = self.models[:7]
+        sae_models = self.models[7:]
+        activations = np.concatenate(
+                tuple(model.get_activations(_data) for model, _data in zip(cnn_models, data)),
+                axis=1)
+        for model in sae_models:
+            activations = model.get_activations(activations)
+        return activations
 
     def compute_score(self, face_vec_1, face_vec_2):
         pass
