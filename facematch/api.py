@@ -105,42 +105,49 @@ class API(object):
             user_ids += test_user_ids
             images += test_images
 
+            # Attempt to free unused memory
+            del test_images, test_user_ids
+            gc.collect()
+
         # Data augmentation
-        cloned_images = dp.clone(images, 1)
-        reflected_images = ip.apply_reflection(cloned_images)
-        # Combine reflected and normal images
-        images = dp.merge(images, reflected_images)
-        images = dp.clone(images, 2)
-        # Apply Random gaussian noise
-        images = ip.apply_noise(images)
+        images = self._augment_data(images)
+        # Create proper image windows and sizes for each CNN
         data = dp.create_training_data_for_mmdfr(images)
-        data_h1, data_p1, data_p2, data_p3, data_p4, data_p5, data_p6, data_y = data
+
+        # Attempt to free unused memory
+        del images
+        gc.collect()
 
         # Training CNNs
         tasks = [
-            TrainingTask(NN2Model, data_h1, data_y, user_ids, cnn_h1),
-            TrainingTask(NN1Model, data_p1, data_y, user_ids, cnn_p1),
-            TrainingTask(NN1Model, data_p2, data_y, user_ids, cnn_p2),
-            TrainingTask(NN1Model, data_p3, data_y, user_ids, cnn_p3),
-            TrainingTask(NN1Model, data_p4, data_y, user_ids, cnn_p4),
-            TrainingTask(NN1Model, data_p5, data_y, user_ids, cnn_p5),
-            TrainingTask(NN1Model, data_p6, data_y, user_ids, cnn_p6)
+            TrainingTask(NN2Model, data[0], data_y, user_ids, cnn_h1),
+            TrainingTask(NN1Model, data[1], data_y, user_ids, cnn_p1),
+            TrainingTask(NN1Model, data[2], data_y, user_ids, cnn_p2),
+            TrainingTask(NN1Model, data[3], data_y, user_ids, cnn_p3),
+            TrainingTask(NN1Model, data[4], data_y, user_ids, cnn_p4),
+            TrainingTask(NN1Model, data[5], data_y, user_ids, cnn_p5),
+            TrainingTask(NN1Model, data[6], data_y, user_ids, cnn_p6)
             ]
         task_manager = TaskManager(tasks)
         task_manager.run_tasks()
 
         # Extracting activations from 2nd last layer for SAE
         tasks = [
-            ActivationExtractionTask(NN2Model, cnn_h1, data_h1, user_ids),
-            ActivationExtractionTask(NN1Model, cnn_p1, data_p1, user_ids),
-            ActivationExtractionTask(NN1Model, cnn_p2, data_p2, user_ids),
-            ActivationExtractionTask(NN1Model, cnn_p3, data_p3, user_ids),
-            ActivationExtractionTask(NN1Model, cnn_p4, data_p4, user_ids),
-            ActivationExtractionTask(NN1Model, cnn_p5, data_p5, user_ids),
-            ActivationExtractionTask(NN1Model, cnn_p6, data_p6, user_ids)
+            ActivationExtractionTask(NN2Model, cnn_h1, data[0], user_ids),
+            ActivationExtractionTask(NN1Model, cnn_p1, data[1], user_ids),
+            ActivationExtractionTask(NN1Model, cnn_p2, data[2], user_ids),
+            ActivationExtractionTask(NN1Model, cnn_p3, data[3], user_ids),
+            ActivationExtractionTask(NN1Model, cnn_p4, data[4], user_ids),
+            ActivationExtractionTask(NN1Model, cnn_p5, data[5], user_ids),
+            ActivationExtractionTask(NN1Model, cnn_p6, data[6], user_ids)
             ]
         task_manager = TaskManager(tasks)
         task_manager.run_tasks()
+
+        # These references aren't used anymore
+        # This should release a lot of used memory here
+        del data, user_ids
+        gc.collect()
 
         # Training first layer in SAE
         activations = np.concatenate((
@@ -167,6 +174,16 @@ class API(object):
         tasks = [TrainingAutoEncoderTask(sae_p3, activations, consts.sae_p2_encoding_size, consts.sae_p3_encoding_size)]
         task_manager = TaskManager(tasks)
         task_manager.run_tasks()
+
+    def _augment_data(self, images):
+        cloned_images = dp.clone(images, 1)
+        reflected_images = ip.apply_reflection(cloned_images)
+        # Combine reflected and normal images
+        images = dp.merge(images, reflected_images)
+        images = dp.clone(images, 2)
+        # Apply Random gaussian noise
+        images = ip.apply_noise(images)
+        return images
 
     def add_image(self, user_id, image):
         """

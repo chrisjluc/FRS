@@ -5,6 +5,7 @@ data/
 
 facematch/.data/images/
 facematch/tests/.cache/
+facematch/tests/.data/
 
 *.swp
 *.swo

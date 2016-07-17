@@ -81,7 +81,6 @@ class Reader(Storage):
         if not os.path.exists(user_path):
             raise Exception('Path does not exist')
 
-
         image_ids = [f.replace(consts.image_ext, '')
                 for f in os.listdir(user_path)
                 if fnmatch.fnmatch(f, '*' + consts.image_ext)]
@@ -96,7 +95,8 @@ class Reader(Storage):
             w = Writer()
             for image_id in images_to_convert:
                 try:
-                    im = Image(os.path.join(user_path, image_id) + consts.jpg_ext)
+                    im = Image(
+                            os.path.join(user_path, image_id) + consts.jpg_ext)
                     w.save_image(user_id, im, path, image_id)
                     image_ids.append(image_id)
                 except NoFaceDetectedException:
