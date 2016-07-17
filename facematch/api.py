@@ -22,13 +22,16 @@ class API(object):
         """
         user_ids = self.reader.get_user_ids()
         self.models = [
-                NN2Model('CNNH1', user_ids),
-                NN1Model('CNNP1', user_ids),
-                NN1Model('CNNP2', user_ids),
-                NN1Model('CNNP3', user_ids),
-                NN1Model('CNNP4', user_ids),
-                NN1Model('CNNP5', user_ids),
-                NN1Model('CNNP6', user_ids)
+                NN2Model(consts.cnn_h1, user_ids),
+                NN1Model(consts.cnn_p1, user_ids),
+                NN1Model(consts.cnn_p2, user_ids),
+                NN1Model(consts.cnn_p3, user_ids),
+                NN1Model(consts.cnn_p4, user_ids),
+                NN1Model(consts.cnn_p5, user_ids),
+                NN1Model(consts.cnn_p6, user_ids),
+                AutoEncoderModel(consts.sae_p1),
+                AutoEncoderModel(consts.sae_p2),
+                AutoEncoderModel(consts.sae_p3),
                 ]
 
         for model in self.models:
@@ -45,16 +48,16 @@ class API(object):
         Trains the model on all images that are currently in storage
         """
         #TODO:  Allow user to set model name
-        cnn_h1 = 'CNNH1'
-        cnn_p1 = 'CNNP1'
-        cnn_p2 = 'CNNP2'
-        cnn_p3 = 'CNNP3'
-        cnn_p4 = 'CNNP4'
-        cnn_p5 = 'CNNP5'
-        cnn_p6 = 'CNNP6'
-        sae_p1 = 'SAEP1'
-        sae_p2 = 'SAEP2'
-        sae_p3 = 'SAEP3'
+        cnn_h1 = consts.cnn_h1
+        cnn_p1 = consts.cnn_p1
+        cnn_p2 = consts.cnn_p2
+        cnn_p3 = consts.cnn_p3
+        cnn_p4 = consts.cnn_p4
+        cnn_p5 = consts.cnn_p5
+        cnn_p6 = consts.cnn_p6
+        sae_p1 = consts.sae_p1
+        sae_p2 = consts.sae_p2
+        sae_p3 = consts.sae_p3
 
         user_ids = self.reader.get_user_ids()
         images = []

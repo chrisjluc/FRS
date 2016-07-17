@@ -3,6 +3,16 @@ import os
 # Model Names
 NN1 = 'nn1'
 NN2 = 'nn2'
+cnn_h1 = 'CNNH1'
+cnn_p1 = 'CNNP1'
+cnn_p2 = 'CNNP2'
+cnn_p3 = 'CNNP3'
+cnn_p4 = 'CNNP4'
+cnn_p5 = 'CNNP5'
+cnn_p6 = 'CNNP6'
+sae_p1 = 'SAEP1'
+sae_p2 = 'SAEP2'
+sae_p3 = 'SAEP3'
 
 # Model CNN consts
 cnn_batch_size = 32

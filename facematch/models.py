@@ -45,7 +45,7 @@ class Model(object):
 
 class AutoEncoderModel(Model):
 
-    def __init__(self, name, input_size, encoding_size, X_train):
+    def __init__(self, name, input_size=None, encoding_size=None, X_train=None):
         super(AutoEncoderModel, self).__init__(
                 name,
                 None,
@@ -54,7 +54,8 @@ class AutoEncoderModel(Model):
         )
         self.input_size = input_size
         self.encoding_size = encoding_size
-        self.autoencoder, self.encoder = _initAutoEncoder(self.input_size, self.encoding_size)
+        if input_size is not None and encoding_size is not None:
+            self.autoencoder, self.encoder = _initAutoEncoder(self.input_size, self.encoding_size)
 
     def train(self):
         self.autoencoder.compile(optimizer='adadelta', loss='binary_crossentropy', metrics=['accuracy'])
@@ -67,8 +68,6 @@ class AutoEncoderModel(Model):
                 validation_split=consts.sae_validation_split)
 
     def get_activations(self, data):
-        if not self.encoder:
-            raise InvalidModelException('Encoder is not set')
         activations = self.encoder.predict(data)
         assert activations.shape[1] == self.encoding_size
         return activations
@@ -80,8 +79,8 @@ class AutoEncoderModel(Model):
 
     def load(self):
         r = Reader()
-        self.autoencoder = r.get_model(self.name)
-        self.encoder = r.get_model(self.name)
+        self.autoencoder = r.get_model(self.name + consts.autoencoder_ext)
+        self.encoder = r.get_model(self.name + consts.encoder_ext)
 
 
 def _initAutoEncoder(input_size, encoding_size):

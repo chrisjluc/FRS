@@ -84,9 +84,10 @@ class Reader(Storage):
         model_path = os.path.join(consts.model_path, model_name)
         model_file = model_path + consts.json_ext
         weight_file = model_path + consts.h5_ext
-        if not os.path.isfile(model_file) or not os.path.isfile(weight_file):
+        if not os.path.isfile(model_file):
             raise Exception('Model files do not exist')
-
+        if not os.path.isfile(weight_file):
+            raise Exception('Weight files do not exist')
         model = model_from_json(open(model_file).read())
         model.load_weights(weight_file)
         return model
