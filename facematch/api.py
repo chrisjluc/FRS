@@ -1,4 +1,5 @@
 import consts
+import gc
 
 import image_processing as ip
 import data_processing as dp
