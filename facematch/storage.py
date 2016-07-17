@@ -1,6 +1,6 @@
 import consts
 
-from image import Image
+from image import Image, NoFaceDetectedException
 
 import fnmatch
 import numpy as np
@@ -25,11 +25,23 @@ class Storage(object):
 
 class Writer(Storage):
 
-    def save_image(self, user_id, image):
+    def save_image(self, user_id, image, path, image_id=None):
+        """
+        Params:
+        image: Image object
+        user_id: also known as directory name
+
+        Persists an Image object at the specified path in the
+        directory named after the user_id.
+
+        if image_id is passed, we use this else we generate
+        a random uuid.
+        """
         image.assert_valid_state()
-        user_path = os.path.join(consts.image_path, user_id)
+        user_path = os.path.join(path, user_id)
         self.create_directory(user_path)
-        image_id = str(uuid.uuid4())
+        if not image_id:
+            image_id = str(uuid.uuid4())
         image_path = os.path.join(user_path, image_id)
         np.save(image_path + consts.image_ext, image.image)
         np.save(image_path + consts.landmarks_ext, image.landmark_points)
@@ -40,6 +52,8 @@ class Writer(Storage):
         params:
         model: keras model
         name: file prefix
+
+        Saves the model.
         """
         model_path = os.path.join(consts.model_path, name)
         json = model.to_json()
@@ -53,18 +67,49 @@ class Writer(Storage):
 
 class Reader(Storage):
 
-    def get_images(self, user_id):
-        user_path = os.path.join(consts.image_path, user_id)
+    def get_images(self, user_id, path):
+        """
+        Given a user_id (also directory name) we load
+        all the corresponding images into facematch.Image objects
+        and return it as an array
+
+        If there are .jpg images that aren't persisted as Image objects,
+        we convert them into Image objects and save them.
+        So next time we call get_images() we don't have to convert from jpg again.
+        """
+        user_path = os.path.join(path, user_id)
         if not os.path.exists(user_path):
-            return None
+            raise Exception('Path does not exist')
+
 
         image_ids = [f.replace(consts.image_ext, '')
                 for f in os.listdir(user_path)
                 if fnmatch.fnmatch(f, '*' + consts.image_ext)]
 
+        # Convert jpg images into our image format if not already converted
+        image_jpg_ids = [f.replace(consts.jpg_ext, '')
+                for f in os.listdir(user_path)
+                if fnmatch.fnmatch(f, '*' + consts.jpg_ext)]
+
+        images_to_convert = set(image_jpg_ids) - set(image_ids)
+        if images_to_convert:
+            w = Writer()
+            for image_id in images_to_convert:
+                try:
+                    im = Image(os.path.join(user_path, image_id) + consts.jpg_ext)
+                    w.save_image(user_id, im, path, image_id)
+                    image_ids.append(image_id)
+                except NoFaceDetectedException:
+                    pass
+
         return [self._get_image(image_id, user_path) for image_id in image_ids]
 
     def _get_image(self, image_id, user_path):
+        """
+        Given an image_id (filename without extension)
+        and the user path (directory) we load the image
+        and return an Image object.
+        """
         image_path = os.path.join(user_path, image_id)
         image = Image()
         image.image = np.load(image_path + consts.image_ext)
@@ -73,10 +118,14 @@ class Reader(Storage):
         image.assert_valid_state()
         return image
 
-    def get_user_ids(self):
+    def get_user_ids(self, path):
+        """
+        Returns all the user ids (directory names)
+        within a certain directory at a specified path
+        """
         return [os.path.basename(os.path.normpath(x[0]))
-            for x in os.walk(consts.image_path)
-            if x[0] != consts.image_path]
+            for x in os.walk(path)
+            if x[0] != path]
 
     def get_model(self, model_name):
         from keras.models import model_from_json

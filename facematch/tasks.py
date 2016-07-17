@@ -4,7 +4,10 @@ from models import AutoEncoderModel
 from storage import Writer
 
 class GPUTask(object):
-
+    """
+    A task that is to be run on a GPU
+    and is scheduled by the TaskManager
+    """
     def run(self):
         raise NotImplementedError
 

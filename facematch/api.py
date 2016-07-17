@@ -16,28 +16,32 @@ class API(object):
         self.reader = Reader()
         self.writer = Writer()
 
-    def load_model(self):
+    def load_model(self, name=''):
         """
         Retrieves model if it has been trained
         """
         user_ids = self.reader.get_user_ids()
         self.models = [
-                NN2Model(consts.cnn_h1, user_ids),
-                NN1Model(consts.cnn_p1, user_ids),
-                NN1Model(consts.cnn_p2, user_ids),
-                NN1Model(consts.cnn_p3, user_ids),
-                NN1Model(consts.cnn_p4, user_ids),
-                NN1Model(consts.cnn_p5, user_ids),
-                NN1Model(consts.cnn_p6, user_ids),
-                AutoEncoderModel(consts.sae_p1),
-                AutoEncoderModel(consts.sae_p2),
-                AutoEncoderModel(consts.sae_p3),
+                NN2Model(name + consts.cnn_h1, user_ids),
+                NN1Model(name + consts.cnn_p1, user_ids),
+                NN1Model(name + consts.cnn_p2, user_ids),
+                NN1Model(name + consts.cnn_p3, user_ids),
+                NN1Model(name + consts.cnn_p4, user_ids),
+                NN1Model(name + consts.cnn_p5, user_ids),
+                NN1Model(name + consts.cnn_p6, user_ids),
+                AutoEncoderModel(name + consts.sae_p1),
+                AutoEncoderModel(name + consts.sae_p2),
+                AutoEncoderModel(name + consts.sae_p3),
                 ]
 
         for model in self.models:
             model.load()
 
     def get_face_vector(self, image):
+        """
+        Given an image convert it to a vector.
+        This vector is a representation of the face.
+        """
         im = Image(image)
         data = dp.create_training_data_for_mmdfr([[im]])
         cnn_models = self.models[:7]
@@ -52,26 +56,55 @@ class API(object):
     def compute_score(self, face_vec_1, face_vec_2):
         pass
 
-    def train(self):
+    def train(self, name='', use_test_data=True):
         """
-        Trains the model on all images that are currently in storage
-        """
-        #TODO:  Allow user to set model name
-        cnn_h1 = consts.cnn_h1
-        cnn_p1 = consts.cnn_p1
-        cnn_p2 = consts.cnn_p2
-        cnn_p3 = consts.cnn_p3
-        cnn_p4 = consts.cnn_p4
-        cnn_p5 = consts.cnn_p5
-        cnn_p6 = consts.cnn_p6
-        sae_p1 = consts.sae_p1
-        sae_p2 = consts.sae_p2
-        sae_p3 = consts.sae_p3
+        Params:
+        name: The name of the model that the user refers to
+            this allows for multiple models to be persisted.
+        use_test_data: On top of the images the user has added
+            train on LFW database.
 
-        user_ids = self.reader.get_user_ids()
+        Trains the mmdfr model described in this paper:
+        https://arxiv.org/abs/1509.00244
+
+        1) Images are extracted from persisted storage
+        2) Data is augmented and transformed for the CNNs
+        3) Since we have multiple GPUs we create tasks and run
+            them on each of the GPUs to maximize utilization.
+            The tasks involve having the keras models which run efficiently
+            on the GPUs, so that's why we offload them to the GPUs.
+        4) Training CNNs, extracting activations from these CNNS and use it
+            to train the SAE.
+
+        All intermediate data is persisted along with the models so it could
+        be retrieved later if necessary.
+        """
+        cnn_h1 = name + consts.cnn_h1
+        cnn_p1 = name + consts.cnn_p1
+        cnn_p2 = name + consts.cnn_p2
+        cnn_p3 = name + consts.cnn_p3
+        cnn_p4 = name + consts.cnn_p4
+        cnn_p5 = name + consts.cnn_p5
+        cnn_p6 = name + consts.cnn_p6
+        sae_p1 = name + consts.sae_p1
+        sae_p2 = name + consts.sae_p2
+        sae_p3 = name + consts.sae_p3
+
+        # Get images the user has added
+        user_ids = self.reader.get_user_ids(consts.image_path)
         images = []
         for user_id in user_ids:
-            images.append(self.reader.get_images(user_id))
+            images.append(self.reader.get_images(user_id, consts.image_path))
+
+        # Get test images from LFW to augment the model's training data
+        if use_test_data:
+            test_user_ids = self.reader.get_user_ids(consts.test_image_path)
+            test_images = []
+            for user_id in test_user_ids:
+                test_images.append(self.reader.get_images(user_id, consts.test_image_path))
+            user_ids += test_user_ids
+            images += test_images
+
         # Data augmentation
         cloned_images = dp.clone(images, 1)
         reflected_images = ip.apply_reflection(cloned_images)
@@ -142,7 +175,7 @@ class API(object):
         image: either a string of the filename or numpy array of an RGB image
         """
         im = Image(image)
-        self.writer.save_image(user_id, im)
+        self.writer.save_image(user_id, im, consts.image_path)
 
     def remove_images(self):
         """

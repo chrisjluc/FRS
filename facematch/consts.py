@@ -35,12 +35,16 @@ nn1_input_shape = 1, 100, 100
 nn2_input_shape = 1, 165, 120
 noise_width = 15
 
-# Storage
+# Storage - Paths
 data_path = '/home/ubuntu/FRS/facematch/.data'
 face_predictor_path = os.path.join(
         data_path, 'shape_predictor_68_face_landmarks.dat')
 image_path = os.path.join(data_path, 'images')
 model_path = os.path.join(data_path, 'models')
+test_data_path = '/home/ubuntu/FRS/facematch/tests/.data'
+test_image_path = os.path.join(test_data_path, 'lfw')
+
+# Storage - Extensions
 image_ext = '_image.npy'
 landmarks_ext = '_landmarks.npy'
 features_ext = '_features.npy'
@@ -49,6 +53,7 @@ encoder_ext = '_sae_encoder.npy'
 autoencoder_ext = '_sae_autoencoder.npy'
 json_ext = '.json'
 h5_ext = '.h5'
+jpg_ext = '.jpg'
 
 # Tasks
 num_gpus = 4

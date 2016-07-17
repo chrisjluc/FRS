@@ -4,7 +4,11 @@ import copy
 import numpy as np
 from scipy.ndimage.filters import gaussian_filter
 
+
 def _reflection(image):
+    """
+    Given an Image object, return the reflected image as an Image object.
+    """
     im, feature_points, landmark_points = image.image, image.feature_points, image.landmark_points
     feature_points = [(im.shape[1] - p[0], p[1]) for p in feature_points]
     landmark_points = [(im.shape[1] - p[0], p[1]) for p in landmark_points]
@@ -16,6 +20,8 @@ def _reflection(image):
 def apply_reflection(images):
     """
     images: list of list of images
+
+    Apply reflection to all the images and return it as a list of list of images
     """
     return [
             [_reflection(image) for image in _images]
