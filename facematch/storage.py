@@ -127,6 +127,29 @@ class Reader(Storage):
             for x in os.walk(path)
             if x[0] != path]
 
+    def get_user_ids_by_descending_jpg_counts(self, path, count=None):
+        """
+        Returns all the user ids (directory names)
+        within a certain directory at a specified path
+        in descending order of jpg count.
+
+        If count is None, return all the images
+        """
+        count_by_names_dict = {}
+        for root, dirnames, filenames in os.walk(path):
+            for dirname in dirnames:
+                if dirname not in count_by_names_dict:
+                    count_by_names_dict[dirname] = 0
+                directory_path = os.path.join(path, dirname)
+                for filename in os.listdir(directory_path):
+                    if filename.endswith(consts.jpg_ext):
+                        count_by_names_dict[dirname] += 1
+        names_by_count = [x for x in count_by_names_dict.iteritems()]
+        names_by_count.sort(key=lambda x: x[1], reverse=True)
+        if count is not None:
+            names_by_count = names_by_count[:count]
+        return [name for name, count in names_by_count]
+
     def get_model(self, model_name):
         from keras.models import model_from_json
 

@@ -99,7 +99,8 @@ class API(object):
 
         # Get test images from LFW to augment the model's training data
         if use_test_data:
-            test_user_ids = self.reader.get_user_ids(consts.test_image_path)
+            test_user_ids = self.reader.get_user_ids_by_descending_jpg_counts(
+                    consts.test_image_path, 600)
             test_images = []
             for user_id in test_user_ids:
                 test_images.append(self.reader.get_images(user_id, consts.test_image_path))
@@ -121,13 +122,13 @@ class API(object):
 
         # Training CNNs
         tasks = [
-            TrainingTask(NN2Model, data[0], data_y, user_ids, cnn_h1),
-            TrainingTask(NN1Model, data[1], data_y, user_ids, cnn_p1),
-            TrainingTask(NN1Model, data[2], data_y, user_ids, cnn_p2),
-            TrainingTask(NN1Model, data[3], data_y, user_ids, cnn_p3),
-            TrainingTask(NN1Model, data[4], data_y, user_ids, cnn_p4),
-            TrainingTask(NN1Model, data[5], data_y, user_ids, cnn_p5),
-            TrainingTask(NN1Model, data[6], data_y, user_ids, cnn_p6)
+            TrainingTask(NN2Model, data[0], data[7], user_ids, cnn_h1),
+            TrainingTask(NN1Model, data[1], data[7], user_ids, cnn_p1),
+            TrainingTask(NN1Model, data[2], data[7], user_ids, cnn_p2),
+            TrainingTask(NN1Model, data[3], data[7], user_ids, cnn_p3),
+            TrainingTask(NN1Model, data[4], data[7], user_ids, cnn_p4),
+            TrainingTask(NN1Model, data[5], data[7], user_ids, cnn_p5),
+            TrainingTask(NN1Model, data[6], data[7], user_ids, cnn_p6)
             ]
         task_manager = TaskManager(tasks)
         task_manager.run_tasks()
