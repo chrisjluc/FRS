@@ -22,12 +22,13 @@ cnn_activation_batch_size = 256
 
 # Model SAE consts
 sae_batch_size = 256
-sae_nb_epoch = 10
+sae_nb_epoch = 50
 sae_validation_split =.15
 sae_p1_input_size = 3584
 sae_p1_encoding_size = 2048
 sae_p2_encoding_size = 1024
 sae_p3_encoding_size = 512
+sae_regularizer = 10e-5
 
 # Image processing
 norm_shape = 230, 230

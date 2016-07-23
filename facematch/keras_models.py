@@ -1,9 +1,16 @@
+import consts
+
 def keras_auto_encoder(input_size, encoding_size):
     from keras.models import Model
     from keras.layers import Dense, Input
+    from keras import regularizers
 
     _input = Input(shape=(input_size,))
-    encoded = Dense(encoding_size, activation='sigmoid')(_input)
+    encoded = Dense(
+            encoding_size,
+            activation='relu',
+            activity_regularizer=regularizers.activity_l1(consts.sae_regularizer)
+            )(_input)
     decoded = Dense(input_size, activation='sigmoid')(encoded)
 
     autoencoder = Model(input=_input, output=decoded)

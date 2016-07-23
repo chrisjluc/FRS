@@ -52,7 +52,7 @@ class AutoEncoderModel(Model):
             self.autoencoder, self.encoder = km.keras_auto_encoder(self.input_size, self.encoding_size)
 
     def train(self):
-        self.autoencoder.compile(optimizer='adadelta', loss='binary_crossentropy', metrics=['accuracy'])
+        self.autoencoder.compile(optimizer='adadelta', loss='categorical_crossentropy', metrics=['accuracy'])
         self.autoencoder.fit(
                 self.X_train,
                 self.X_train,
