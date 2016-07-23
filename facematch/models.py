@@ -9,7 +9,7 @@ import numpy as np
 
 class Model(object):
 
-    def __init__(self, name, ids, X_train=None, Y_train=None):
+    def __init__(self, name, ids=None, X_train=None, Y_train=None):
         self.X_train = X_train
         self.Y_train = Y_train
         self.ids = ids
@@ -118,7 +118,7 @@ class CNNModel(Model):
 
 class NN1Model(CNNModel):
 
-    def __init__(self, name, ids, X_train=None, Y_train=None):
+    def __init__(self, name, ids=None, X_train=None, Y_train=None):
         super(NN1Model, self).__init__(
                 name,
                 ids,
@@ -131,7 +131,7 @@ class NN1Model(CNNModel):
 
 class NN2Model(CNNModel):
 
-    def __init__(self, name, ids, X_train=None, Y_train=None):
+    def __init__(self, name, ids=None, X_train=None, Y_train=None):
         super(NN2Model, self).__init__(
                 name,
                 ids,

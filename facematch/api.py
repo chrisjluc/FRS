@@ -20,16 +20,19 @@ class API(object):
     def load_model(self, name=''):
         """
         Retrieves model if it has been trained
+
+        Note: After this function is called, we won't be able to
+        call train() because the theano context exists in this process.
+        GPUs will have initialization error
         """
-        user_ids = self.reader.get_user_ids()
         self.models = [
-                NN2Model(name + consts.cnn_h1, user_ids),
-                NN1Model(name + consts.cnn_p1, user_ids),
-                NN1Model(name + consts.cnn_p2, user_ids),
-                NN1Model(name + consts.cnn_p3, user_ids),
-                NN1Model(name + consts.cnn_p4, user_ids),
-                NN1Model(name + consts.cnn_p5, user_ids),
-                NN1Model(name + consts.cnn_p6, user_ids),
+                NN2Model(name + consts.cnn_h1),
+                NN1Model(name + consts.cnn_p1),
+                NN1Model(name + consts.cnn_p2),
+                NN1Model(name + consts.cnn_p3),
+                NN1Model(name + consts.cnn_p4),
+                NN1Model(name + consts.cnn_p5),
+                NN1Model(name + consts.cnn_p6),
                 AutoEncoderModel(name + consts.sae_p1),
                 AutoEncoderModel(name + consts.sae_p2),
                 AutoEncoderModel(name + consts.sae_p3),
