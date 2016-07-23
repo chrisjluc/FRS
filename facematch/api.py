@@ -57,9 +57,6 @@ class API(object):
             activations = model.get_activations(activations)
         return activations
 
-    def compute_score(self, face_vec_1, face_vec_2):
-        pass
-
     def train(self,
             name='',
             use_test_data=True,
