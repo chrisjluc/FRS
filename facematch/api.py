@@ -62,7 +62,7 @@ class API(object):
             use_test_data=True,
             train_cnns=True,
             extract_activations=True,
-            trains_sae=True
+            train_sae=True
         ):
         """
         Params:

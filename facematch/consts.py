@@ -18,7 +18,7 @@ sae_p3 = 'SAEP3'
 cnn_batch_size = 32
 cnn_validation_split = .15
 cnn_nb_epoch = 10
-cnn_activation_batch_size = 512
+cnn_activation_batch_size = 256
 
 # Model SAE consts
 sae_batch_size = 256
