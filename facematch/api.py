@@ -57,7 +57,13 @@ class API(object):
     def compute_score(self, face_vec_1, face_vec_2):
         pass
 
-    def train(self, name='', use_test_data=True):
+    def train(self,
+            name='',
+            use_test_data=True,
+            train_cnns=True,
+            extract_activations=True,
+            trains_sae=True
+        ):
         """
         Params:
         name: The name of the model that the user refers to
@@ -91,14 +97,17 @@ class API(object):
         sae_p2 = name + consts.sae_p2
         sae_p3 = name + consts.sae_p3
 
-        # Get images the user has added
-        user_ids = self.reader.get_user_ids(consts.image_path)
-        images = []
-        for user_id in user_ids:
-            images.append(self.reader.get_images(user_id, consts.image_path))
+        needs_data = train_cnns or extract_activations
+
+        if needs_data:
+            # Get images the user has added
+            user_ids = self.reader.get_user_ids(consts.image_path)
+            images = []
+            for user_id in user_ids:
+                images.append(self.reader.get_images(user_id, consts.image_path))
 
         # Get test images from LFW to augment the model's training data
-        if use_test_data:
+        if needs_data and use_test_data:
             test_user_ids = self.reader.get_user_ids_by_descending_jpg_counts(
                     consts.test_image_path, 600)
             test_images = []
@@ -111,71 +120,76 @@ class API(object):
             del test_images, test_user_ids
             gc.collect()
 
-        # Data augmentation
-        images = self._augment_data(images)
-        # Create proper image windows and sizes for each CNN
-        data = dp.create_training_data_for_mmdfr(images)
+        if needs_data:
+            # Data augmentation
+            images = self._augment_data(images)
+            # Create proper image windows and sizes for each CNN
+            data = dp.create_training_data_for_mmdfr(images)
 
-        # Attempt to free unused memory
-        del images
-        gc.collect()
+            # Attempt to free unused memory
+            del images
+            gc.collect()
 
-        # Training CNNs
-        tasks = [
-            TrainingTask(NN2Model, data[0], data[7], user_ids, cnn_h1),
-            TrainingTask(NN1Model, data[1], data[7], user_ids, cnn_p1),
-            TrainingTask(NN1Model, data[2], data[7], user_ids, cnn_p2),
-            TrainingTask(NN1Model, data[3], data[7], user_ids, cnn_p3),
-            TrainingTask(NN1Model, data[4], data[7], user_ids, cnn_p4),
-            TrainingTask(NN1Model, data[5], data[7], user_ids, cnn_p5),
-            TrainingTask(NN1Model, data[6], data[7], user_ids, cnn_p6)
-            ]
-        task_manager = TaskManager(tasks)
-        task_manager.run_tasks()
+        if train_cnns:
+            # Training CNNs
+            tasks = [
+                TrainingTask(NN2Model, data[0], data[7], user_ids, cnn_h1),
+                TrainingTask(NN1Model, data[1], data[7], user_ids, cnn_p1),
+                TrainingTask(NN1Model, data[2], data[7], user_ids, cnn_p2),
+                TrainingTask(NN1Model, data[3], data[7], user_ids, cnn_p3),
+                TrainingTask(NN1Model, data[4], data[7], user_ids, cnn_p4),
+                TrainingTask(NN1Model, data[5], data[7], user_ids, cnn_p5),
+                TrainingTask(NN1Model, data[6], data[7], user_ids, cnn_p6)
+                ]
+            task_manager = TaskManager(tasks)
+            task_manager.run_tasks()
 
-        # Extracting activations from 2nd last layer for SAE
-        tasks = [
-            ActivationExtractionTask(NN2Model, cnn_h1, data[0], user_ids),
-            ActivationExtractionTask(NN1Model, cnn_p1, data[1], user_ids),
-            ActivationExtractionTask(NN1Model, cnn_p2, data[2], user_ids),
-            ActivationExtractionTask(NN1Model, cnn_p3, data[3], user_ids),
-            ActivationExtractionTask(NN1Model, cnn_p4, data[4], user_ids),
-            ActivationExtractionTask(NN1Model, cnn_p5, data[5], user_ids),
-            ActivationExtractionTask(NN1Model, cnn_p6, data[6], user_ids)
-            ]
-        task_manager = TaskManager(tasks)
-        task_manager.run_tasks()
+        if extract_activations:
+            # Extracting activations from 2nd last layer for SAE
+            tasks = [
+                ActivationExtractionTask(NN2Model, cnn_h1, data[0], user_ids),
+                ActivationExtractionTask(NN1Model, cnn_p1, data[1], user_ids),
+                ActivationExtractionTask(NN1Model, cnn_p2, data[2], user_ids),
+                ActivationExtractionTask(NN1Model, cnn_p3, data[3], user_ids),
+                ActivationExtractionTask(NN1Model, cnn_p4, data[4], user_ids),
+                ActivationExtractionTask(NN1Model, cnn_p5, data[5], user_ids),
+                ActivationExtractionTask(NN1Model, cnn_p6, data[6], user_ids)
+                ]
+            task_manager = TaskManager(tasks)
+            task_manager.run_tasks()
 
-        # These references aren't used anymore
-        # This should release a lot of used memory here
-        del data, user_ids
-        gc.collect()
+        if needs_data:
+            # These references aren't used anymore
+            # This should release a lot of used memory here
+            del data, user_ids
+            gc.collect()
 
-        # Training first layer in SAE
-        activations = np.concatenate((
-            self.reader.load_activations(cnn_h1),
-            self.reader.load_activations(cnn_p1),
-            self.reader.load_activations(cnn_p2),
-            self.reader.load_activations(cnn_p3),
-            self.reader.load_activations(cnn_p4),
-            self.reader.load_activations(cnn_p5),
-            self.reader.load_activations(cnn_p6)
-            ), axis=1)
-        tasks = [TrainingAutoEncoderTask(sae_p1, activations, consts.sae_p1_input_size, consts.sae_p1_encoding_size)]
-        task_manager = TaskManager(tasks)
-        task_manager.run_tasks()
+        if train_sae:
+            # Training first layer in SAE
+            activations = np.concatenate((
+                self.reader.load_activations(cnn_h1),
+                self.reader.load_activations(cnn_p1),
+                self.reader.load_activations(cnn_p2),
+                self.reader.load_activations(cnn_p3),
+                self.reader.load_activations(cnn_p4),
+                self.reader.load_activations(cnn_p5),
+                self.reader.load_activations(cnn_p6)
+                ), axis=1)
+            tasks = [TrainingAutoEncoderTask(sae_p1, activations, consts.sae_p1_input_size, consts.sae_p1_encoding_size)]
+            task_manager = TaskManager(tasks)
+            task_manager.run_tasks()
 
-        # Training second layer in SAE
-        activations = self.reader.load_activations(sae_p1)
-        tasks = [TrainingAutoEncoderTask(sae_p2, activations, consts.sae_p1_encoding_size, consts.sae_p2_encoding_size)]
-        task_manager = TaskManager(tasks)
-        task_manager.run_tasks()
+            # Training second layer in SAE
+            activations = self.reader.load_activations(sae_p1)
+            tasks = [TrainingAutoEncoderTask(sae_p2, activations, consts.sae_p1_encoding_size, consts.sae_p2_encoding_size)]
+            task_manager = TaskManager(tasks)
+            task_manager.run_tasks()
 
-        # Training third layer in SAE
-        activations = self.reader.load_activations(sae_p2)
-        tasks = [TrainingAutoEncoderTask(sae_p3, activations, consts.sae_p2_encoding_size, consts.sae_p3_encoding_size)]
-        task_manager = TaskManager(tasks)
-        task_manager.run_tasks()
+            # Training third layer in SAE
+            activations = self.reader.load_activations(sae_p2)
+            tasks = [TrainingAutoEncoderTask(sae_p3, activations, consts.sae_p2_encoding_size, consts.sae_p3_encoding_size)]
+            task_manager = TaskManager(tasks)
+            task_manager.run_tasks()
 
     def _augment_data(self, images):
         cloned_images = dp.clone(images, 1)
